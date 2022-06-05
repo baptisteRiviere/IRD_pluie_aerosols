@@ -6,18 +6,20 @@ import matplotlib.pyplot as plt
 from scipy import signal
 
 import georef as grf
-from IFormatBehaviour import IformatBehaviour
+from IFormatBehaviour import IFormat
 
-
-class Nat_Format(IformatBehaviour):
+class Nat_Format(IFormat):
     
     def project(in_path,out_path,projection,canal):
         convert_nat(in_path,out_path,projection,canal)
 
-    def getResolution(self, sound):
-        return None
-
-    def getCanals(self, sound):
+    def getResolution(in_path,canal):
+        reader = "seviri_l1b_native" # define reader
+        scn = Scene(filenames = {reader:[in_path]})
+        scn.load([canal], calibration = "brightness_temperature")
+        return (scn[canal].resolution,scn[canal].resolution)
+        
+    def getCanals(in_path):
         return None
 
 
@@ -80,19 +82,20 @@ def convert_nat(src_path,out_path,projection,attribute,compute_var_path=None,plo
         return None
             
 
-
 if __name__ == '__main__':
     nat_path = r"../data/IR/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
     proj_path = r"tools/param.json"
 
+    """
     #attributes = ['HRV', 'IR_016', 'IR_039', 'IR_087', 'IR_097', 'IR_108', 'IR_120', 'IR_134', 'VIS006', 'VIS008', 'WV_062', 'WV_073'] 
     attributes = ['IR_087']
     for att in attributes:
         out_path = rf"../data/test_seg/Meteosat_{att}.tiff"
         compute_var_path = rf"../data/test_seg/Meteosat_{att}_var.tiff"
         values = convert_nat(nat_path,out_path,proj_path,att,compute_var_path)
+    """
 
-
+    print(Nat_Format.getResolution(nat_path,'IR_087'))
     
     
 

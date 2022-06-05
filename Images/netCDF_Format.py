@@ -3,19 +3,24 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+import geopy.distance
 
 import georef as grf
-from IFormatBehaviour import IformatBehaviour
+from IFormatBehaviour import IFormat
 
-class NetCDF_Format(IformatBehaviour):
+
+
+class NetCDF_Format(IFormat):
     
     def project(in_path,out_path,projection,canal):
         convert_netCDF(in_path,out_path,projection,canal)
 
-    def getResolution(self, sound):
-        return None
-
-    def getCanals(self, sound):
+    def getResolution(in_path,canal,projection):
+        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, canal))
+        (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
+        return (x_res,-y_res)
+    
+    def getCanals(in_path):
         return None
 
 def convert_netCDF(src_path,out_path,projection,attribute):
@@ -48,11 +53,13 @@ if __name__ == '__main__':
     proj_path = r"tools/param.json"
     netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2021364-91V-E-GRD-CSU-v1.5.nc'
     attribute = "TB"
-    out_path = r"../data/test_seg/SSMI.tiff"
+    out_path = r"../data/test_SSMI.tiff"
 
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    convert_netCDF(netcdf_path,out_path,projection,attribute)
+    #convert_netCDF(netcdf_path,out_path,projection,attribute)
+
+    print(NetCDF_Format.getResolution(netcdf_path,attribute,projection))
     
 
 
