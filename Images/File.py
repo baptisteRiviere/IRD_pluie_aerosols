@@ -12,8 +12,16 @@ class File:
         self.format.project(self.path,out_path,projection,canal)
 
     def getCanals(self):
-        return None
+        return self.format.getCanals(self.path)
 
     def getResolution(self, canal):
         return self.format.getResolution(self.path,canal)
 
+
+if __name__ == "__main__":
+    in_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2021364-91V-E-GRD-CSU-v1.5.nc'
+    attribute = "TB"
+    
+    file = File(in_path)
+
+    print(file.getCanals())

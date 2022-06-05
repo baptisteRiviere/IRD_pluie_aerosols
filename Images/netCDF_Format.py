@@ -3,11 +3,9 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 import json
-import geopy.distance
 
 import georef as grf
 from IFormatBehaviour import IFormat
-
 
 
 class NetCDF_Format(IFormat):
@@ -21,7 +19,8 @@ class NetCDF_Format(IFormat):
         return (x_res,-y_res)
     
     def getCanals(in_path):
-        return None
+        ds = nc.Dataset(in_path,'r')
+        return ds.variables.keys()
 
 def convert_netCDF(src_path,out_path,projection,attribute):
     ds = gdal.Open("NETCDF:{0}:{1}".format(src_path, attribute))
@@ -59,7 +58,7 @@ if __name__ == '__main__':
 
     #convert_netCDF(netcdf_path,out_path,projection,attribute)
 
-    print(NetCDF_Format.getResolution(netcdf_path,attribute,projection))
+    print(NetCDF_Format.getCanals(netcdf_path))
     
 
 

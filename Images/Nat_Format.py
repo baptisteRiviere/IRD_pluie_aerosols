@@ -20,8 +20,9 @@ class Nat_Format(IFormat):
         return (scn[canal].resolution,scn[canal].resolution)
         
     def getCanals(in_path):
-        return None
-
+        reader = "seviri_l1b_native" # define reader
+        scn = Scene(filenames = {reader:[in_path]})
+        return scn.available_dataset_names()
 
 def generate_img_var(im):
     im2 = im**2
@@ -95,7 +96,7 @@ if __name__ == '__main__':
         values = convert_nat(nat_path,out_path,proj_path,att,compute_var_path)
     """
 
-    print(Nat_Format.getResolution(nat_path,'IR_087'))
+    print(Nat_Format.getCanals(nat_path))
     
     
 
