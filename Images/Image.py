@@ -1,8 +1,4 @@
 import json
-
-from NetCDF_Format import NetCDF_Format
-from Nat_Format import Nat_Format
-
 from File import File
 
 class Image:
