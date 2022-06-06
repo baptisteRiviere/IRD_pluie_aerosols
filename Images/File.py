@@ -12,18 +12,18 @@ class File:
         self.format = extensions[path.split(".")[-1]]
 
     def project(self,out_path,projection,attribute):
-        self.format.project(self.path,out_path,projection,attribute)
+        image = self.format.project(self.path,out_path,projection,attribute)
+        return image
 
     def getAttributes(self):
-        # TODO : opération attributes => attributes
         return self.format.getAttributes(self.path)
 
     def getResolution(self, attribute):
         return self.format.getResolution(self.path,attribute)
 
     def getImage(self,attribute):
-        array = self.format.getArray(self.path,attribute)
-        return Image(array)
+        array,lons,lats = self.format.getArrayLonsLats(self.path,attribute)
+        return Image(array,lons,lats)
 
 
 if __name__ == "__main__":

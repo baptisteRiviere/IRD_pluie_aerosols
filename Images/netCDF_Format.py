@@ -1,8 +1,8 @@
 from osgeo import gdal
 import netCDF4 as nc
 import numpy as np
-import matplotlib.pyplot as plt
 import json
+from Image import Image
 
 import georef as grf
 from IFormatBehaviour import IFormat
@@ -26,7 +26,8 @@ class NetCDF_Format(IFormat):
         new_ds.SetProjection(ds.GetProjection())
         new_ds.WriteArray(arr)
 
-        grf.georef_ds(new_ds,projection,out_path)
+        new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
+        return Image(new_array,new_lons,new_lats)
 
     def getResolution(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
@@ -37,7 +38,7 @@ class NetCDF_Format(IFormat):
         ds = nc.Dataset(in_path,'r')
         return ds.variables.keys()
 
-    def getArrayLonsLats(in_path,attribute):
+    def getImage(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
         array = ds.ReadAsArray()/100 # TODO : passer ça en attribut
@@ -46,7 +47,7 @@ class NetCDF_Format(IFormat):
             for y in range(len(array[0])):
                 lons[y][x] = x_res * x + rot1 * y + x_offset
                 lats[y][x] = rot2 * x + y_res * y + y_offset
-        return array,lons,lats
+        return Image(array,lons,lats)
     
 
 if __name__ == '__main__':

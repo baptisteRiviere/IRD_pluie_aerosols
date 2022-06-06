@@ -2,26 +2,26 @@ import numpy as np
 from osgeo import gdal
 import pyresample as pr
 
-def define_area(param):
+def define_area(projection):
     """
     Permet d'implémenter l'objet AreaDefinition de la librairie pyresample à partir des données demandées
 
     Args:
-        param_fil (string): chemin vers le fichier .json contenant les paramètres de la projection
+        projection (string): chemin vers le fichier .json contenant les paramètres de la projection
     
     Return:
         (AreaDefinition): objet AreaDefinition
     """
     # create some information on the reference system
-    area_id = param["area_id"]
-    description = param["description"]
-    proj_id = param["proj_id"]
-    proj_dict = {"proj": param["proj"], "ellps": param["ellps"], "datum": param["datum"]}
-    llx = param["llx"]                  # lower left x coordinate in degrees
-    lly = param["lly"]                  # lower left y coordinate in degrees
-    urx = param["urx"]                  # upper right x coordinate in degrees
-    ury = param["ury"]                  # upper right y coordinate in degrees
-    resolution = param["resolution"]    # target resolution in degrees
+    area_id = projection["area_id"]
+    description = projection["description"]
+    proj_id = projection["proj_id"]
+    proj_dict = {"proj": projection["proj"], "ellps": projection["ellps"], "datum": projection["datum"]}
+    llx = projection["llx"]                  # lower left x coordinate in degrees
+    lly = projection["lly"]                  # lower left y coordinate in degrees
+    urx = projection["urx"]                  # upper right x coordinate in degrees
+    ury = projection["ury"]                  # upper right y coordinate in degrees
+    resolution = projection["resolution"]    # target resolution in degrees
     # calculating the number of pixels
     width = int((urx - llx) / resolution)
     height = int((ury - lly) / resolution)
@@ -46,6 +46,15 @@ def georef_ds(ds,projection,out_path):
 
     gdal.Warp(out_path, ds, options=options)
 
+    (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
+    array = ds.ReadAsArray()
+    lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
+    for x in range(len(array)):
+        for y in range(len(array[0])):
+            lons[y][x] = x_res * x + rot1 * y + x_offset
+            lats[y][x] = rot2 * x + y_res * y + y_offset
+    return array,lons,lats
+
 def georef_array(array,srcLons,srcLats,projection,out_path):
     outArea = define_area(projection)
     swath_def = pr.geometry.SwathDefinition(lons=srcLons, lats=srcLats)
@@ -57,6 +66,7 @@ def georef_array(array,srcLons,srcLats,projection,out_path):
                                             fill_value=False
                                             )
     
+    array = np.array(array)
     cols = array.shape[1]
     rows = array.shape[0]
 
@@ -72,11 +82,13 @@ def georef_array(array,srcLons,srcLats,projection,out_path):
     out_raster.SetGeoTransform(geotransform)
 
     outband = out_raster.GetRasterBand(1)
-    outband.WriteArray(np.array(array)) # writting the values
-
+    outband.WriteArray(array) # writting the values
     out_raster.SetProjection(srs)
     
     # clean up
     outband.FlushCache()
     outband = None
     out_raster = None
+
+    lons, lats = outArea.get_lonlats()
+    return array, lons, lats

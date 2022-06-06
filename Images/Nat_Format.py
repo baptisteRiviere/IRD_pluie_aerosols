@@ -1,8 +1,8 @@
 import numpy as np
-import pyresample as pr
 from satpy import Scene
 import numpy.ma as ma
 import json 
+from Image import Image
 
 import georef as grf
 from IFormatBehaviour import IFormat
@@ -12,8 +12,8 @@ class Nat_Format(IFormat):
     
     def project(in_path,out_path,projection,attribute):
         array,lons,lats = Nat_Format.getArrayLonsLats(in_path, attribute)
-        grf.georef_array(array,lons,lats,projection,out_path)
-        return array
+        new_array,new_lons,new_lats = grf.georef_array(array,lons,lats,projection,out_path)
+        return Image(new_array,new_lons,new_lats)
 
     def getResolution(in_path,attribute):
         # TODO : alternative reader et calibration
@@ -27,7 +27,7 @@ class Nat_Format(IFormat):
         scn = Scene(filenames = {reader:[in_path]})
         return scn.available_dataset_names()
 
-    def getArrayLonsLats(in_path, attribute):
+    def getImage(in_path, attribute):
         try :
             dtype = "float32"
             reader = "seviri_l1b_native" # define reader
@@ -43,7 +43,7 @@ class Nat_Format(IFormat):
             lons_ma = ma.array(lons, mask=mask)
             lats_ma = ma.array(lats, mask=mask)
 
-            return values_ma,lons_ma,lats_ma
+            return Image(values_ma,lons_ma,lats_ma)
 
         except KeyError:
             # TODO : trouver meilleure parade

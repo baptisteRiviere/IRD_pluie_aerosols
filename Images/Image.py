@@ -6,9 +6,11 @@ from scipy import signal
 class Image:
     # TODO : documentation
     
-    def __init__(self, array, name="Unkown"):
+    def __init__(self, array, lons, lats, name="Unkown"):
         self.array = array
         self.name = name
+        self.lons = lons
+        self.lats = lats
     
     def show(self):
         # TODO : test unitaire
@@ -26,7 +28,10 @@ class Image:
         s2 = signal.convolve2d(im2, kernel, mode="same")
         ns = signal.convolve2d(ones, kernel, mode="same")
         
-        return np.sqrt((s2 - s**2 / ns) / ns)
+        arr_var = np.sqrt((s2 - s**2 / ns) / ns)
+        img_var = Image(arr_var,self.lons,self.lats)
+
+        return img_var
 
     def save():
         # TODO : sauvegarder un geotiff, voir quel attribut ajouter

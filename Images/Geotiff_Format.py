@@ -2,6 +2,7 @@ import numpy as np
 from osgeo import gdal
 import georef as grf
 import json as json
+from Image import Image
 
 
 class Geotiff_Format:
@@ -9,8 +10,8 @@ class Geotiff_Format:
     
     def project(in_path,out_path,projection,attribute):
         array,lons,lats = Geotiff_Format.getArrayLonsLats(in_path,attribute)
-        grf.georef_array(array,lons,lats,projection,out_path)
-        return array
+        new_array,new_lons,new_lats = grf.georef_array(array,lons,lats,projection,out_path)
+        return Image(new_array,new_lons,new_lats)
 
     def getResolution(in_path,attribute):
         ds = gdal.Open(in_path)
@@ -21,7 +22,7 @@ class Geotiff_Format:
         ds = gdal.Open(in_path)
         return [i+1 for i in range(ds.RasterCount)]
 
-    def getArrayLonsLats(in_path,attribute):
+    def getImage(in_path,attribute):
         ds = gdal.Open(in_path)
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
         rb = ds.GetRasterBand(attribute)
@@ -31,7 +32,7 @@ class Geotiff_Format:
             for y in range(len(array[0])):
                 lons[y][x] = x_res * x + rot1 * y + x_offset
                 lats[y][x] = rot2 * x + y_res * y + y_offset
-        return array,lons,lats
+        return Image(array,lons,lats)
         
 
 
