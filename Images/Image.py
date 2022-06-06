@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 
+import georef as grf
+
 class Image:
     # TODO : documentation
     
@@ -33,9 +35,9 @@ class Image:
 
         return img_var
 
-    def save():
-        # TODO : sauvegarder un geotiff, voir quel attribut ajouter
-        return None
+    def save(self,projection,out_path):
+        grf.georef_array(self.array,self.lons,self.lats,projection,out_path)
+        
 
 
 

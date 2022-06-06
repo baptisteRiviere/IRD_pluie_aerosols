@@ -12,7 +12,12 @@ class NetCDF_Format(IFormat):
     # TODO : documentation
     
     def project(in_path,out_path,projection,attribute):
-        # TODO : documentation
+        """
+        # TODO : documentation et voir si on peut utiliser georef_image
+        src_image = NetCDF_Format.getImage(in_path,attribute)
+        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+        return Image(new_array, new_lons, new_lats)
+        """
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
 
         band = ds.GetRasterBand(1)
@@ -28,7 +33,8 @@ class NetCDF_Format(IFormat):
 
         new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
         return Image(new_array,new_lons,new_lats)
-
+        
+        
     def getResolution(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
@@ -41,7 +47,7 @@ class NetCDF_Format(IFormat):
     def getImage(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
-        array = ds.ReadAsArray()/100 # TODO : passer ça en attribut
+        array = ds.ReadAsArray()/100 # TODO : passer ça en attribut et utiliser fct georef
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
         for x in range(len(array)):
             for y in range(len(array[0])):

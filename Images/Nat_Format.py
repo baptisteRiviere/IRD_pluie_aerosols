@@ -11,9 +11,9 @@ class Nat_Format(IFormat):
     # TODO documentation
     
     def project(in_path,out_path,projection,attribute):
-        array,lons,lats = Nat_Format.getArrayLonsLats(in_path, attribute)
-        new_array,new_lons,new_lats = grf.georef_array(array,lons,lats,projection,out_path)
-        return Image(new_array,new_lons,new_lats)
+        src_image = Nat_Format.getImage(in_path,attribute)
+        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+        return Image(new_array, new_lons, new_lats)
 
     def getResolution(in_path,attribute):
         # TODO : alternative reader et calibration

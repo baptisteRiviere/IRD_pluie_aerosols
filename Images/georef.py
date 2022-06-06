@@ -2,6 +2,7 @@ import numpy as np
 from osgeo import gdal
 import pyresample as pr
 
+
 def define_area(projection):
     """
     Permet d'implémenter l'objet AreaDefinition de la librairie pyresample à partir des données demandées
@@ -44,51 +45,47 @@ def georef_ds(ds,projection,out_path):
         dstSRS="+proj=longlat +datum=WGS84 +no_defs"
         ) # TODO : changer srs
 
-    gdal.Warp(out_path, ds, options=options)
+    ds_proj = gdal.Warp(out_path, ds, options=options)
+    return getArrayLonsLats(ds_proj)
 
-    (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
-    array = ds.ReadAsArray()
-    lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
-    for x in range(len(array)):
-        for y in range(len(array[0])):
-            lons[y][x] = x_res * x + rot1 * y + x_offset
-            lats[y][x] = rot2 * x + y_res * y + y_offset
-    return array,lons,lats
 
-def georef_array(array,srcLons,srcLats,projection,out_path):
+def georef_image(src_image,projection,out_path):
     outArea = define_area(projection)
-    swath_def = pr.geometry.SwathDefinition(lons=srcLons, lats=srcLats)
-    array = pr.kd_tree.resample_nearest(    swath_def, 
-                                            array,
-                                            outArea,
-                                            radius_of_influence=16000, # in meters
-                                            epsilon=.5,
-                                            fill_value=False
-                                            )
+    swath_def = pr.geometry.SwathDefinition(lons=src_image.lons, lats=src_image.lats)
+    new_array = pr.kd_tree.resample_nearest(    swath_def, 
+                                                src_image.array,
+                                                outArea,
+                                                radius_of_influence=16000, # in meters
+                                                epsilon=.5,
+                                                fill_value=False
+                                                )
     
-    array = np.array(array)
-    cols = array.shape[1]
-    rows = array.shape[0]
-
+    new_array = np.array(new_array)
+    cols = new_array.shape[1]   ; rows = new_array.shape[0]
     pixelWidth = (outArea.area_extent[2] - outArea.area_extent[0]) / cols
     pixelHeight = (outArea.area_extent[1] - outArea.area_extent[3]) / rows
-    originX = outArea.area_extent[0]
-    originY = outArea.area_extent[3] 
+    originX = outArea.area_extent[0]    ; originY = outArea.area_extent[3] 
     srs = outArea.proj4_string
     geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
+    print(geotransform)
     
     driver = gdal.GetDriverByName('GTiff')
     out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_UInt16)
     out_raster.SetGeoTransform(geotransform)
 
     outband = out_raster.GetRasterBand(1)
-    outband.WriteArray(array) # writting the values
+    outband.WriteArray(new_array) # writting the values
     out_raster.SetProjection(srs)
-    
-    # clean up
-    outband.FlushCache()
-    outband = None
-    out_raster = None
 
-    lons, lats = outArea.get_lonlats()
-    return array, lons, lats
+    new_lons, new_lats = outArea.get_lonlats()
+    return new_array, new_lons, new_lats
+
+def getArrayLonsLats(ds):
+    (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
+    array = ds.ReadAsArray()
+    lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape) # 397, 483
+    for x in range(array.shape[1]):
+        for y in range(array.shape[0]):
+            lons[y][x] = x_res * x + rot1 * y + x_offset
+            lats[y][x] = rot2 * x + y_res * y + y_offset
+    return array,lons,lats
