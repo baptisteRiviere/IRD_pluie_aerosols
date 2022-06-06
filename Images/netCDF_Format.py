@@ -9,43 +9,45 @@ from IFormatBehaviour import IFormat
 
 
 class NetCDF_Format(IFormat):
+    # TODO : documentation
     
-    def project(in_path,out_path,projection,canal):
-        convert_netCDF(in_path,out_path,projection,canal)
+    def project(in_path,out_path,projection,attribute):
+        # TODO : documentation
+        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
 
-    def getResolution(in_path,canal,projection):
-        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, canal))
+        band = ds.GetRasterBand(1)
+        arr = band.ReadAsArray()/100    # TODO : trouver moyen suppr ça
+
+        # TODO : améliorer ça
+        driver = gdal.GetDriverByName('GTiff')
+        new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_UInt16)
+
+        new_ds.SetGeoTransform(ds.GetGeoTransform())
+        new_ds.SetProjection(ds.GetProjection())
+        new_ds.WriteArray(arr)
+
+        grf.georef_ds(new_ds,projection,out_path)
+
+    def getResolution(in_path,attribute):
+        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
         return (x_res,-y_res)
     
-    def getCanals(in_path):
+    def getAttributes(in_path):
         ds = nc.Dataset(in_path,'r')
         return ds.variables.keys()
 
-def convert_netCDF(src_path,out_path,projection,attribute):
-    ds = gdal.Open("NETCDF:{0}:{1}".format(src_path, attribute))
-
-    band = ds.GetRasterBand(1)
-    arr = band.ReadAsArray()/100    # TODO : trouver moyen suppr ça
-
-    # TODO : améliorer ça
-    driver = gdal.GetDriverByName('GTiff')
-    new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_UInt16)
-
-    new_ds.SetGeoTransform(ds.GetGeoTransform())
-    new_ds.SetProjection(ds.GetProjection())
-    new_ds.WriteArray(arr)
-
-    grf.georef_ds(new_ds,projection,out_path)
-
-
-def get_infos(netcdf_path):
-    ds = nc.Dataset(netcdf_path)["TB"][:]
-    arr = np.array(ds[:],dtype=int)
-    #arr = np.array(ds["TB"][:],dtype=int)
-    plt.imshow(arr)
-    plt.show()    
-    #print(dates)   2021-12-30 00:00:00  1200/60 = 20h
+    def getArrayLonsLats(in_path,attribute):
+        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
+        (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
+        array = ds.ReadAsArray()/100 # TODO : passer ça en attribut
+        lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
+        for x in range(len(array)):
+            for y in range(len(array[0])):
+                lons[y][x] = x_res * x + rot1 * y + x_offset
+                lats[y][x] = rot2 * x + y_res * y + y_offset
+        return array,lons,lats
+    
 
 if __name__ == '__main__':
 
@@ -56,9 +58,10 @@ if __name__ == '__main__':
 
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    #convert_netCDF(netcdf_path,out_path,projection,attribute)
+    array,lons,lats = NetCDF_Format.getArrayLonsLats(netcdf_path,attribute)
+    print(array)
 
-    print(NetCDF_Format.getCanals(netcdf_path))
+    
     
 
 

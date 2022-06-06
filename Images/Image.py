@@ -1,25 +1,46 @@
 import json
-from File import File
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import signal
 
 class Image:
+    # TODO : documentation
     
-    def __init__(self, file, canal, projection):
-        self.file = file
-        self.canal = canal
-        self.projection = projection
-        self.resolution = file.getResolution(canal)
-
-    def project(self,out_path):
-        self.file.project(out_path,self.projection,self.canal)
-
-    def getArray(self, sound):
-        return None
-
-    def getLonsLats(self, sound):
-        return None
+    def __init__(self, array, name="Unkown"):
+        self.array = array
+        self.name = name
     
-    def plot(self):
+    def show(self):
+        # TODO : test unitaire
+        plt.imshow(self.array)
+        plt.show()
+
+    def computeVar(self):
+        # TODO : test unitaire
+        im = self.array
+        im2 = im**2
+        ones = np.ones(im.shape)
+        
+        kernel = np.ones((3,3))
+        s = signal.convolve2d(im, kernel, mode="same")
+        s2 = signal.convolve2d(im2, kernel, mode="same")
+        ns = signal.convolve2d(ones, kernel, mode="same")
+        
+        return np.sqrt((s2 - s**2 / ns) / ns)
+
+    def save():
+        # TODO : sauvegarder un geotiff, voir quel attribut ajouter
         return None
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":

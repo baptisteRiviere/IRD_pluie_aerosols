@@ -1,21 +1,29 @@
 from NetCDF_Format import NetCDF_Format
 from Nat_Format import Nat_Format
 
+from Image import Image
+
 class File:
+    # TODO : documentation
     
     def __init__(self, path):
         self.path = path
         extensions = {"nat":Nat_Format, "nc":NetCDF_Format}
         self.format = extensions[path.split(".")[-1]]
 
-    def project(self,out_path,projection,canal):
-        self.format.project(self.path,out_path,projection,canal)
+    def project(self,out_path,projection,attribute):
+        self.format.project(self.path,out_path,projection,attribute)
 
-    def getCanals(self):
-        return self.format.getCanals(self.path)
+    def getAttributes(self):
+        # TODO : opération attributes => attributes
+        return self.format.getAttributes(self.path)
 
-    def getResolution(self, canal):
-        return self.format.getResolution(self.path,canal)
+    def getResolution(self, attribute):
+        return self.format.getResolution(self.path,attribute)
+
+    def getImage(self,attribute):
+        array = self.format.getArray(self.path,attribute)
+        return Image(array)
 
 
 if __name__ == "__main__":
@@ -24,4 +32,5 @@ if __name__ == "__main__":
     
     file = File(in_path)
 
-    print(file.getCanals())
+    image = file.getImage(attribute)
+    image.show()

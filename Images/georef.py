@@ -1,8 +1,6 @@
 import numpy as np
 from osgeo import gdal
-import json
 import pyresample as pr
-import matplotlib.pyplot as plt
 
 def define_area(param):
     """
@@ -31,35 +29,10 @@ def define_area(param):
     area_def = pr.geometry.AreaDefinition(area_id, proj_id, description, proj_dict, width, height, area_extent)
     return area_def
 
-def georef_array(array,area_def,fname):
-    cols = array.shape[1]
-    rows = array.shape[0]
+def georef_ds(ds,projection,out_path):
 
-    pixelWidth = (area_def.area_extent[2] - area_def.area_extent[0]) / cols
-    pixelHeight = (area_def.area_extent[1] - area_def.area_extent[3]) / rows
-    originX = area_def.area_extent[0]
-    originY = area_def.area_extent[3] 
-    srs = area_def.proj4_string
-    geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
-    
-    driver = gdal.GetDriverByName('GTiff')
-    out_raster = driver.Create(fname, cols, rows, 1, gdal.GDT_UInt16)
-    out_raster.SetGeoTransform(geotransform)
-
-    outband = out_raster.GetRasterBand(1)
-    outband.WriteArray(np.array(array)) # writting the values
-
-    out_raster.SetProjection(srs)
-    
-    # clean up
-    outband.FlushCache()
-    outband = None
-    out_raster = None
-
-def georef_ds(ds,proj_param,out_path):
-
-    llx,lly,urx,ury = proj_param["llx"],proj_param["lly"],proj_param["urx"],proj_param["ury"] 
-    resolution = proj_param["resolution"]
+    llx,lly,urx,ury = projection["llx"],projection["lly"],projection["urx"],projection["ury"] 
+    resolution = projection["resolution"]
     width = int((urx - llx) / resolution)
     height = int((ury - lly) / resolution)
     
@@ -73,3 +46,37 @@ def georef_ds(ds,proj_param,out_path):
 
     gdal.Warp(out_path, ds, options=options)
 
+def georef_array(array,srcLons,srcLats,projection,out_path):
+    outArea = define_area(projection)
+    swath_def = pr.geometry.SwathDefinition(lons=srcLons, lats=srcLats)
+    array = pr.kd_tree.resample_nearest(    swath_def, 
+                                            array,
+                                            outArea,
+                                            radius_of_influence=16000, # in meters
+                                            epsilon=.5,
+                                            fill_value=False
+                                            )
+    
+    cols = array.shape[1]
+    rows = array.shape[0]
+
+    pixelWidth = (outArea.area_extent[2] - outArea.area_extent[0]) / cols
+    pixelHeight = (outArea.area_extent[1] - outArea.area_extent[3]) / rows
+    originX = outArea.area_extent[0]
+    originY = outArea.area_extent[3] 
+    srs = outArea.proj4_string
+    geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
+    
+    driver = gdal.GetDriverByName('GTiff')
+    out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_UInt16)
+    out_raster.SetGeoTransform(geotransform)
+
+    outband = out_raster.GetRasterBand(1)
+    outband.WriteArray(np.array(array)) # writting the values
+
+    out_raster.SetProjection(srs)
+    
+    # clean up
+    outband.FlushCache()
+    outband = None
+    out_raster = None
