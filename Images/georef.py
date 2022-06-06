@@ -48,7 +48,6 @@ def georef_ds(ds,projection,out_path):
     ds_proj = gdal.Warp(out_path, ds, options=options)
     return getArrayLonsLats(ds_proj)
 
-
 def georef_image(src_image,projection,out_path):
     outArea = define_area(projection)
     swath_def = pr.geometry.SwathDefinition(lons=src_image.lons, lats=src_image.lats)

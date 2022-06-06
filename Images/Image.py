@@ -15,7 +15,7 @@ class Image:
         self.lats = lats
     
     def show(self):
-        # TODO : test unitaire
+        # TODO : ajouter titre et voir barre couleur
         plt.imshow(self.array)
         plt.show()
 
@@ -37,6 +37,8 @@ class Image:
 
     def save(self,projection,out_path):
         grf.georef_array(self.array,self.lons,self.lats,projection,out_path)
+        # TODO : il s'agit de la fonction project plutot, renvoie image
+        # TODO : mettre en place save avec autre chose que georef_array qui n'existe plus
         
 
 

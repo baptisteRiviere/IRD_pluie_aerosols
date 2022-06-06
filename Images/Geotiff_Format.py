@@ -26,7 +26,7 @@ class Geotiff_Format:
     def getImage(in_path,attribute):
         ds = gdal.Open(in_path)
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
-        rb = ds.GetRasterBand(attribute)
+        rb = ds.GetRasterBand(attribute) # TODO faire en sorte d'avoir toujours un float
         array = rb.ReadAsArray()
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
         for x in range(len(array)):
