@@ -1,0 +1,13 @@
+{
+	"area_id": "Guyane",
+	"description": "Geographical Coordinate System clipped on French Guyana",
+	"proj_id": "Guyane",
+	"proj": "longlat",
+	"ellps": "WGS84",
+	"datum": "WGS84",
+	"llx": -63,
+	"lly": 0.3,
+	"urx": -50,
+	"ury": 11,
+	"resolution": 0.0269
+}

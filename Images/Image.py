@@ -2,6 +2,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
+import cartopy
 
 import georef as grf
 
@@ -14,13 +15,18 @@ class Image:
         self.lons = lons
         self.lats = lats
     
-    def show(self):
-        # TODO : ajouter titre et voir barre couleur
-        plt.imshow(self.array)
+    def show(self,save=False):
+        crs = cartopy.crs.PlateCarree()
+        ax = plt.axes(projection=crs)
+        ax.add_feature(cartopy.feature.BORDERS) # add borders
+        ax.coastlines()
+        cbar = plt.contourf(self.lons, self.lats, self.array, 60, cmap = 'gist_rainbow_r', transform=crs)
+        lon_min,lon_max,lat_min,lat_max = np.min(self.lons),np.max(self.lons),np.min(self.lats),np.max(self.lats)
+        ax.set_extent([lon_min,lon_max,lat_min,lat_max], crs=crs) # zoom over a specific region and set crs of the given coordinates
+        plt.colorbar(cbar, orientation='vertical') # add colorbar to the plot
         plt.show()
 
     def computeVar(self):
-        # TODO : test unitaire
         im = self.array
         im2 = im**2
         ones = np.ones(im.shape)
