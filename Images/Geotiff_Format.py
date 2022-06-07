@@ -33,8 +33,8 @@ class Geotiff_Format:
         rb = ds.GetRasterBand(attribute) # TODO faire en sorte d'avoir toujours un float
         array = rb.ReadAsArray()
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
-        for x in range(len(array)):
-            for y in range(len(array[0])):
+        for y in range(len(array)):
+            for x in range(len(array[0])):
                 lons[y][x] = x_res * x + rot1 * y + x_offset
                 lats[y][x] = rot2 * x + y_res * y + y_offset
         return Image(array,lons,lats)
