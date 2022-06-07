@@ -9,12 +9,9 @@ class File:
     # TODO : documentation
     
     def __init__(self, path):
-        try :
-            self.path = path
-            extensions = {"nat":Nat_Format, "nc":NetCDF_Format, "tiff":Geotiff_Format, "tif":Geotiff_Format}
-            self.format = extensions[path.split(".")[-1]]
-        except KeyError :
-            print("Error: cette extension n'est pas reconnue")
+        self.path = path
+        extensions = {"nat":Nat_Format, "nc":NetCDF_Format, "tiff":Geotiff_Format, "tif":Geotiff_Format}
+        self.format = extensions[path.split(".")[-1]]
 
     def project(self,out_path,projection,attribute):
         image = self.format.project(self.path,out_path,projection,attribute)

@@ -9,9 +9,13 @@ class Geotiff_Format:
     # TODO : documentation
     
     def project(in_path,out_path,projection,attribute):
-        src_image = Geotiff_Format.getImage(in_path,attribute)
-        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
-        return Image(new_array, new_lons, new_lats)
+        try :
+            src_image = Geotiff_Format.getImage(in_path,attribute)
+            new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+            return Image(new_array, new_lons, new_lats)
+        except :
+            print(f"ERROR: l'image {in_path} n'a pas pu être projetée pour l'attribut {attribute}")
+            return False
         
 
     def getResolution(in_path,attribute):

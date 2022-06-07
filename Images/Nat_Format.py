@@ -2,8 +2,8 @@ import numpy as np
 from satpy import Scene
 import numpy.ma as ma
 import json 
-from Image import Image
 
+from Image import Image
 import georef as grf
 from IFormatBehaviour import IFormat
 
@@ -11,9 +11,12 @@ class Nat_Format(IFormat):
     # TODO documentation
     
     def project(in_path,out_path,projection,attribute):
-        src_image = Nat_Format.getImage(in_path,attribute)
-        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
-        return Image(new_array, new_lons, new_lats)
+        try :
+            src_image = Nat_Format.getImage(in_path,attribute)
+            new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+            return Image(new_array, new_lons, new_lats)
+        except :
+            print(f"l'image {in_path} n'a pas pu être reprojetée pour l'attribut {attribute}")
 
     def getResolution(in_path,attribute):
         # TODO : alternative reader et calibration
@@ -47,8 +50,8 @@ class Nat_Format(IFormat):
 
         except KeyError:
             # TODO : trouver meilleure parade
-            print(f"ERROR: la température de brillance n'est pas définie pour le attribute {attribute}")
-            return None
+            print(f"ERROR: la température de brillance n'est pas définie pour {attribute}")
+            return False
 
     
             

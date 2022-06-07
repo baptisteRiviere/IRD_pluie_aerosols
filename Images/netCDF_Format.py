@@ -18,22 +18,25 @@ class NetCDF_Format(IFormat):
         new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
         return Image(new_array, new_lons, new_lats)
         """
-        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
+        try :
+            ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
 
-        band = ds.GetRasterBand(1)
-        arr = band.ReadAsArray()/100    # TODO : trouver moyen suppr ça
+            band = ds.GetRasterBand(1)
+            arr = band.ReadAsArray()/100    # TODO : trouver moyen suppr ça
 
-        # TODO : améliorer ça
-        driver = gdal.GetDriverByName('GTiff')
-        new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_UInt16)
+            # TODO : améliorer ça
+            driver = gdal.GetDriverByName('GTiff')
+            new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_UInt16)
 
-        new_ds.SetGeoTransform(ds.GetGeoTransform())
-        new_ds.SetProjection(ds.GetProjection())
-        new_ds.WriteArray(arr)
+            new_ds.SetGeoTransform(ds.GetGeoTransform())
+            new_ds.SetProjection(ds.GetProjection())
+            new_ds.WriteArray(arr)
 
-        new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
-        return Image(new_array,new_lons,new_lats)
-        
+            new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
+            return Image(new_array,new_lons,new_lats)
+        except :
+            print(f"ERROR: l'image {in_path} n'a pas pu être projetée pour l'attribut {attribute}")
+            return False
         
     def getResolution(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
