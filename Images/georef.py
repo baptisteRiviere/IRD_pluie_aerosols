@@ -31,7 +31,6 @@ def define_area(projection):
     return area_def
 
 def georef_ds(ds,projection,out_path):
-
     llx,lly,urx,ury = projection["llx"],projection["lly"],projection["urx"],projection["ury"] 
     resolution = projection["resolution"]
     width = int((urx - llx) / resolution)
@@ -57,8 +56,7 @@ def georef_image(src_image,projection,out_path):
                                                 radius_of_influence=16000, # in meters
                                                 epsilon=.5,
                                                 fill_value=False
-                                                )
-    
+                                                ) 
     new_array = np.array(new_array)
     cols = new_array.shape[1]   ; rows = new_array.shape[0]
     pixelWidth = (outArea.area_extent[2] - outArea.area_extent[0]) / cols
