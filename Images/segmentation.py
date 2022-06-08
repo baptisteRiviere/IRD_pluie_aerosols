@@ -207,29 +207,29 @@ def classification(X,N,epsilon=0.01,T=100,init_size=None):
 
 if __name__ == '__main__':
     # load projection # TODO : faire en sorte que ce soit exactement la même proj ! important
-    projection = json.load(open(r"Images/param.json", "r", encoding="utf-8"))
+    projection = json.load(open(r"Images/param_guy.json", "r", encoding="utf-8"))
     # load images
-    img_paths = glob.glob(r"../data/RACC/test_data/*.tiff")
+    img_paths = glob.glob(r"../data/RACC/train/*.tiff")
     images = [File(img_path).getImage(1) for img_path in img_paths]
     
     X, (x,y), lons, lats = generate_X(images)
-    X,X_max,X_min = standard_scaler(X)  # standardisation pour comparer les données sur les mêmes plages de valeur
+    #X,X_max,X_min = standard_scaler(X)  # standardisation pour comparer les données sur les mêmes plages de valeur
     print(f"taille de X: {X.shape}")
     
     pred,centers,L_conv = classification(X,10,epsilon=0.001,T=10,init_size=(x,y))
 
     array = pred.reshape((x,y))
     img_classif = Image(array,lons,lats)
-    img_classif.show()
+    img_classif.show(simple=True)
     img_classif.save(projection,r"../data/RACC/results/result.tiff")
     
     plt.plot(L_conv)
     plt.ylim(-30,30)
     plt.show()
 
-    true_centers = centers*(X_max-X_min)+X_min
-    print(true_centers)
-    np.save("../data/RACC/results/centers.npy",true_centers)
+    #true_centers = centers*(X_max-X_min)+X_min
+    print(centers)
+    np.save("../data/RACC/results/centers.npy",centers)
     
 
 

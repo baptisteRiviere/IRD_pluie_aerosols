@@ -6,16 +6,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates
 from datetime import datetime
+from Image import Image
 
 
-def download_all(file,out_dir):
+def download_all(file,out_path):
     for att in file.getAttributes():
-        out_path = out_dir + f"{att}.tiff"
-        out_path_var = out_dir + f"{att}_var.tiff"
+        #out_path_var = out_dir + f"{att}_var.tiff"
         image = file.project(out_path,projection,att)
+        """
         if image : # if image != False
             image_var = image.computeVar()
             image_var.save(projection,out_path_var)
+        """
 
 def selection_dir(dir,projection,attribute,zero_rate=0.1):
     paths = glob.glob(dir + "*/*.nc")
@@ -39,7 +41,7 @@ def selection_dir(dir,projection,attribute,zero_rate=0.1):
 
 
 
-def download_from_json(json_path,dates,projection):
+def download_SSMI(json_path,dates,projection):
     
     dates_dir = json.load(open(json_path, "r", encoding="utf-8"))
     
@@ -47,12 +49,40 @@ def download_from_json(json_path,dates,projection):
         filename = dates_dir[d]
         file = File(filename)
         day=d.split(" ")[0]
-        image = file.project(rf"../data/SSMI/results/SSMI_{day}.tiff",projection,"TB")
-    
-   
-    
+        file.project(rf"../data/RACC/train/SSMI_{day}.tiff",projection,"TB")
     
 
+def download_IR(filenames,projection,attribute):
+    for fn in filenames:
+        file = File(fn)
+        date = fn.split("-")[-2]
+        yyyy,mm,dd = date[:4],date[4:6],date[6:8]
+        file.project(rf"../data/IR/agregation/{attribute}_{yyyy}-{mm}-{dd}.tiff",projection,attribute)
+    """
+    file = File(fn)
+    download_all(file,r"../data/IR/results/IR{")
+    """
+
+def aggregation(dir,projection,mode="sum",variance=False):
+    filenames = glob.glob(rf"{dir}*.tiff")
+    images = []
+    for fn in filenames:
+        file = File(fn)
+        images.append(file.getImage(1).array)
+        lons,lats = file.getImage(1).lons, file.getImage(1).lats    # TODO : recalculer à chaque fois ? ce ne sont pas des manières
+    if mode == "mean":
+        output = np.mean(np.array(images),axis=0)
+    else:
+        output = np.sum(np.array(images),axis=0)
+    img_output = Image(output, lons, lats)
+    img_output.save(projection,dir+rf"{mode}.tiff")
+    if variance :
+        img_output_var = img_output.computeVar()
+        img_output_var.save(projection,dir+rf"{mode}_var.tiff")
+    
+
+
+    
 if __name__ == "__main__":
     projection_path = r"Images/param_guy.json"
     projection = json.load(open(projection_path, "r", encoding="utf-8"))
@@ -65,10 +95,24 @@ if __name__ == "__main__":
     #download_all(MO_file,out_dir)
     #download_all(IR_file,out_dir)
 
-    dir = r"../data/SSMI/"
-    #selection_dir(dir,projection,"TB")
+    #download_SSMI(r"../data/SSMI/",projection,"TB")
+
+    #download_IR(glob.glob(r"../data/IR/*.nat"),projection,"IR_087")
+
+    #aggregation(r"../data/SSMI/agregation/",projection,"mean")
+    aggregation(r"../data/IR/agregation/",projection,"mean",True)
 
 
+
+
+
+
+
+
+
+
+
+    """
     dates = [
         "2021-11-30 10:11:07",
         "2021-12-01 20:00:54",
@@ -79,7 +123,8 @@ if __name__ == "__main__":
         "2021-12-22 20:24:51",
         "2021-12-25 21:50:50"
     ]
-    download_from_json(f"{dir}dates.json",dates,projection)
+    download_SSMI_from_json(f"{dir}dates.json",dates,projection)
+    """
 
 
 
