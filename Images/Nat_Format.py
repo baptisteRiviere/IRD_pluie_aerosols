@@ -8,25 +8,30 @@ import georef as grf
 from IFormatBehaviour import IFormat
 
 class Nat_Format(IFormat):
-    # TODO documentation
+    """
+    Classe héritant de l'interface IFormat permettant de fournir un ensemble de méthodes pour un certain format de données
+    Cet outil a été développé pour l'extraction des fichiers nat (native Format Archive) fournis par eumetsat à l'URL ci-dessous
+    afin d'en extraire la température de brillance, les objets reader et calibration sont ainsi propres à ce cas d'utilisation
+    https://data.eumetsat.int/data/map/EO:EUM:DAT:MSG:HRSEVIRI#
     
+    L'architecture est inspirée du Strategy pattern
+    """
+    
+    # TODO : moyen pour avoir reader et calibration en paramètre
+
     def project(in_path,out_path,projection,attribute):
-        try :
-            src_image = Nat_Format.getImage(in_path,attribute)
-            new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
-            return Image(new_array, new_lons, new_lats)
-        except :
-            print(f"l'image {in_path} n'a pas pu être reprojetée pour l'attribut {attribute}")
+        src_image = Nat_Format.getImage(in_path,attribute)
+        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+        return Image(new_array, new_lons, new_lats)
 
     def getResolution(in_path,attribute):
-        # TODO : alternative reader et calibration
-        reader = "seviri_l1b_native" # define reader
+        reader = "seviri_l1b_native"
         scn = Scene(filenames = {reader:[in_path]})
         scn.load([attribute], calibration = "brightness_temperature")
         return (scn[attribute].resolution,scn[attribute].resolution)
         
     def getAttributes(in_path):
-        reader = "seviri_l1b_native" # define reader
+        reader = "seviri_l1b_native"
         scn = Scene(filenames = {reader:[in_path]})
         return scn.available_dataset_names()
 
@@ -58,14 +63,14 @@ class Nat_Format(IFormat):
 
 if __name__ == '__main__':
     nat_path = r"../data/IR/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
-    out_path = r"../data/teest.tiff"
+    out_path = r"../data/test.tiff"
     attribute = 'IR_087'
-    proj_path = r"tools/param_guy.json"
+    proj_path = r"Images/param_guy.json"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
     
 
-    array = Nat_Format.project(nat_path,out_path,projection,attribute)
+    array = Nat_Format.getAttributes(nat_path)
     
     
     

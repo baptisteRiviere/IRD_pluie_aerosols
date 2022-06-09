@@ -6,7 +6,12 @@ from Image import Image
 
 
 class Geotiff_Format:
-    # TODO : documentation
+    """
+    Classe héritant de l'interface IFormat permettant de fournir un ensemble de méthodes pour un certain format de données
+    Cet outil a été développé pour l'extraction des fichiers geotiffs (.tiff)
+    
+    L'architecture est inspirée du Strategy pattern
+    """
     
     def project(in_path,out_path,projection,attribute):
         try :

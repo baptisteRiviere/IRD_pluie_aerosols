@@ -12,7 +12,14 @@ from IFormatBehaviour import IFormat
 
 
 class NetCDF_Format(IFormat):
-    # TODO : documentation
+    """
+    Classe héritant de l'interface IFormat permettant de fournir un ensemble de méthodes pour un certain format de données
+    Cet outil a été développé pour l'extraction des fichiers netCDF fournis par la NSIDC à l'URL ci-dessous
+    afin d'en extraire la température de brillance
+    https://nsidc.org/data/NSIDC-0630/versions/1
+    
+    L'architecture est inspirée du Strategy pattern
+    """
     
     def project(in_path,out_path,projection,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
@@ -32,7 +39,6 @@ class NetCDF_Format(IFormat):
         new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
         return Image(new_array,new_lons,new_lats)
         
-        
     def getResolution(in_path,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
@@ -46,6 +52,7 @@ class NetCDF_Format(IFormat):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute)) # ouverture du fichier avec gdal
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
         scale_factor = f.variables[attribute].scale_factor
+        #print(f.variables["crs"].proj4text)
         array = ds.ReadAsArray()*scale_factor   # ouverture du fichier
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()        
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
@@ -88,7 +95,7 @@ if __name__ == '__main__':
     plt.show()
     """
 
-    print(NetCDF_Format.getTime(netcdf_path,projection))
+    print(NetCDF_Format.getImage(netcdf_path,"TB"))
 
     
 
