@@ -43,7 +43,7 @@ def standard_scaler(X):
     X_min = np.min(X, axis=0)
     return (X-X_min)/(X_max-X_min), X_max, X_min
 
-def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=False):
+def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=False,show=True,save=True):
     """
     classification des images à partir de la méthode des Kmeans
 
@@ -71,12 +71,16 @@ def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=F
 
     array_pred = pred.reshape((x,y))
     img_classif = Image(array_pred,lons,lats)
-    img_classif.show(simple=True)
-    img_classif.save(projection,main_dir+"/result.tiff")
-
+    
     # S'il y a eu standardisation on recalcule les centres de classes dans la bonne unité
     centers = centers*(X_max-X_min)+X_min 
-    np.save(main_dir+"/centers.npy",centers)
+
+    if save:
+        np.save(main_dir+"/centers.npy",centers)
+        img_classif.save(projection,main_dir+"/result.tiff")
+
+    if show:
+        img_classif.show(simple=True)
 
     return array_pred,centers
     

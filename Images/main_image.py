@@ -3,9 +3,6 @@ from File import File
 import json
 import glob
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates
-from datetime import datetime
 from Image import Image
 
 
@@ -39,8 +36,6 @@ def selection_dir(dir,projection,attribute,zero_rate=0.1):
         json.dump(out_dict, f, ensure_ascii=False, indent=4)
     return out_dict
 
-
-
 def download_SSMI(json_path,dates,projection):
     
     dates_dir = json.load(open(json_path, "r", encoding="utf-8"))
@@ -51,7 +46,6 @@ def download_SSMI(json_path,dates,projection):
         day=d.split(" ")[0]
         file.project(rf"../data/RACC/train/SSMI_{day}.tiff",projection,"TB")
     
-
 def download_IR(filenames,projection,attribute):
     for fn in filenames:
         file = File(fn)
@@ -100,15 +94,7 @@ if __name__ == "__main__":
     #download_IR(glob.glob(r"../data/IR/*.nat"),projection,"IR_087")
 
     #aggregation(r"../data/SSMI/agregation/",projection,"mean")
-    aggregation(r"../data/IR/agregation/",projection,"mean",True)
-
-
-
-
-
-
-
-
+    #aggregation(r"../data/IR/agregation/",projection,"mean",True)
 
 
 
@@ -123,7 +109,14 @@ if __name__ == "__main__":
         "2021-12-22 20:24:51",
         "2021-12-25 21:50:50"
     ]
-    download_SSMI_from_json(f"{dir}dates.json",dates,projection)
+    dates_dir = json.load(open(r"../data/SSMI/dates.json", "r", encoding="utf-8"))
+    
+    for d in dates:
+        filename = dates_dir[d].split("-")
+        filename[-5] = "19V"
+        f = '-'.join(filename)
+        print(f)
+    #download_SSMI_from_json(f"{dir}dates.json",dates,projection)
     """
 
 

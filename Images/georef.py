@@ -64,7 +64,6 @@ def georef_image(src_image,projection,out_path):
     originX = outArea.area_extent[0]    ; originY = outArea.area_extent[3] 
     srs = outArea.proj4_string
     geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
-    print(geotransform)
     
     driver = gdal.GetDriverByName('GTiff')
     out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_UInt16)
