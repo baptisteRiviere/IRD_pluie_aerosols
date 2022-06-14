@@ -35,7 +35,7 @@ def georef_ds(ds,projection,out_path):
     resolution = projection["resolution"]
     width = int((urx - llx) / resolution)
     height = int((ury - lly) / resolution)
-    
+
     options = gdal.WarpOptions(
         outputBounds=[llx,lly,urx,ury],
         format="GTiff",

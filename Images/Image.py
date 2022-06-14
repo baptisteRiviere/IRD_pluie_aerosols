@@ -9,11 +9,12 @@ import georef as grf
 class Image:
     # TODO : documentation
     
-    def __init__(self, array, lons, lats, name="Unkown"):
+    def __init__(self, array, lons, lats, proj=None, date=None):
         self.array = array
-        self.name = name
         self.lons = lons
         self.lats = lats
+        self.proj = proj
+        self.date = date
     
     def show(self,simple=False):
         if simple:
@@ -41,12 +42,12 @@ class Image:
         ns = signal.convolve2d(ones, kernel, mode="same")
         
         arr_var = np.sqrt((s2 - s**2 / ns) / ns)
-        img_var = Image(arr_var,self.lons,self.lats)
+        img_var = Image(arr_var,self.lons,self.lats,self.proj)
 
         return img_var
 
-    def save(self,projection,out_path):
-        grf.georef_image(self,projection,out_path)
+    def save(self,out_path):
+        grf.georef_image(self,self.proj,out_path)
         # TODO : il s'agit de la fonction project plutot, renvoie image
         # TODO : mettre en place save avec autre chose que georef_array qui n'existe plus
         
@@ -64,14 +65,7 @@ class Image:
 
 if __name__ == "__main__":
     in_path = r"../data/IR/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
-    #in_path = r"../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2021364-91V-E-GRD-CSU-v1.5.nc"
     out_path = r"../data/test2.tiff"
     projection = json.load(open(r"tools/param.json", "r", encoding="utf-8"))
     canal = "IR_087"
-    #canal = "TB"
 
-
-    file = File(in_path)
-    img = Image(file,canal,projection)
-    img.project(out_path)
-    #print(img.resolution)
