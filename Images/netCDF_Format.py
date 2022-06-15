@@ -24,19 +24,17 @@ class NetCDF_Format(IFormat):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
         scale_factor = f.variables[attribute].scale_factor
-        band = ds.GetRasterBand(1)
-        arr = band.ReadAsArray()*scale_factor
+        arr = ds.GetRasterBand(1).ReadAsArray()*scale_factor
 
-        """
-        # TODO : améliorer ça
+        # TODO : améliorer les 8 lignes pro (permettent de prendre en compte le scale factor)
         driver = gdal.GetDriverByName('GTiff')
-        new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_UInt16)
+        new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
 
         new_ds.SetGeoTransform(ds.GetGeoTransform())
         new_ds.SetProjection(ds.GetProjection())
         new_ds.WriteArray(arr)
-        """
-        new_array,new_lons,new_lats = grf.georef_ds(ds,projection,out_path)
+        
+        new_array,new_lons,new_lats = grf.georef_ds(new_ds,projection,out_path)
         
         return Image(new_array,new_lons,new_lats)
         
@@ -69,31 +67,22 @@ class NetCDF_Format(IFormat):
         
     def getTime(in_path,projection,attribute="TB_time"):
         ds = nc.Dataset(in_path)
-        img = NetCDF_Format.project(in_path,r"temporary2.tiff",projection,attribute)
-        minutes = np.mean(img.array)
+        img = NetCDF_Format.project(in_path,r"temporary.tiff",projection,attribute)
+        minutes = np.int(np.mean(img.array))
         start_date = datetime.datetime.strptime(ds.time_coverage_start, '%Y-%m-%dT%H:%M:%S.%f%z')
-        acq_date = start_date + datetime.timedelta(minutes=minutes)
-        return acq_date
+        acq_date_utc = start_date + datetime.timedelta(hours=+3,minutes=minutes)
+        return acq_date_utc
 
 
 if __name__ == '__main__':
 
-    proj_path = r"RACC/param.json"
+    proj_path = r"Images/param_test.json"
     netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2021364-91V-E-GRD-CSU-v1.5.nc'
     attribute = "TB"
     out_path = r"../data/test_SSMI.tiff"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    """
-    netCDF_image = NetCDF_Format.project(netcdf_path,out_path,projection,attribute)
-    plt.imshow(netCDF_image.array)
-    plt.show()
-    """
-
-    img = NetCDF_Format.project(netcdf_path,"test.tiff",projection,attribute="TB")
-    plt.imshow(img.array)
-    plt.show()
-
+    dt = NetCDF_Format.getTime(netcdf_path,projection,attribute="TB_time")
     
 
     

@@ -65,12 +65,16 @@ if __name__ == '__main__':
     nat_path = r"../data/IR/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
     out_path = r"../data/test.tiff"
     attribute = 'IR_087'
-    proj_path = r"Images/param_guy.json"
+    proj_path = r"RACC/param_guy.json"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    
-
-    array = Nat_Format.getAttributes(nat_path)
+    import glob
+    fns = glob.glob(r"../data/IR/test/*.nat")
+    i = 0
+    for fn in fns:
+        print(i, fn)
+        i += 1
+        Nat_Format.project(fn,rf"../data/IR/test/{i}.tiff",projection,"IR_087")
     
     
     

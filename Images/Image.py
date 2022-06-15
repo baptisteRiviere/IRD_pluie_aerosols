@@ -46,8 +46,8 @@ class Image:
 
         return img_var
 
-    def save(self,out_path):
-        grf.georef_image(self,self.proj,out_path)
+    def save(self,projection,out_path):
+        grf.georef_image(self,projection,out_path)
         # TODO : il s'agit de la fonction project plutot, renvoie image
         # TODO : mettre en place save avec autre chose que georef_array qui n'existe plus
         

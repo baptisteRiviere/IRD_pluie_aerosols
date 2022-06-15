@@ -2,7 +2,10 @@ import numpy as np
 import glob
 import json
 from sklearn.cluster import KMeans
+import os
+import sys
 
+sys.path.insert(0, r'../Images')
 from File import File
 from Image import Image
 
@@ -76,8 +79,11 @@ def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=F
     centers = centers*(X_max-X_min)+X_min 
 
     if save:
-        np.save(main_dir+"/result/centers.npy",centers)
-        img_classif.save(projection,main_dir+"/result/result.tiff")
+        out_dir = main_dir + "/result"
+        if not (os.path.exists(out_dir)):
+            os.makedirs(out_dir)
+        np.save(out_dir+"/centers.npy",centers)
+        img_classif.save(projection,out_dir+"/result.tiff")
 
     if show:
         img_classif.show(simple=True)

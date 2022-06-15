@@ -66,7 +66,7 @@ def georef_image(src_image,projection,out_path):
     geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
     
     driver = gdal.GetDriverByName('GTiff')
-    out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_UInt16)
+    out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_Float32)
     out_raster.SetGeoTransform(geotransform)
 
     outband = out_raster.GetRasterBand(1)

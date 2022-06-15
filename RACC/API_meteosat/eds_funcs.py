@@ -169,7 +169,7 @@ def download_zipped_product(collection_id,product_id,access_token):
 def get_token():
 #  global consumer_key
 #  global consumer_secret
-
+  print(eds_defs.keys_file)
   if os.path.isfile(eds_defs.keys_file):
     fp=open(eds_defs.keys_file,'r')
     consumer_key=fp.readline().rstrip(' \n')

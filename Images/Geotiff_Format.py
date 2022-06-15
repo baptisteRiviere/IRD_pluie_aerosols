@@ -22,7 +22,6 @@ class Geotiff_Format:
             print(f"ERROR: l'image {in_path} n'a pas pu être projetée pour l'attribut {attribute}")
             return False
         
-
     def getResolution(in_path,attribute):
         ds = gdal.Open(in_path)
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
@@ -35,8 +34,7 @@ class Geotiff_Format:
     def getImage(in_path,attribute):
         ds = gdal.Open(in_path)
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
-        rb = ds.GetRasterBand(attribute) # TODO faire en sorte d'avoir toujours un float
-        array = rb.ReadAsArray()
+        array = ds.GetRasterBand(attribute).ReadAsArray()
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
         for y in range(len(array)):
             for x in range(len(array[0])):
