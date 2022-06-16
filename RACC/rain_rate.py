@@ -13,7 +13,7 @@ projection = json.load(open(projection_path, "r", encoding="utf-8"))
 
 def search(dir,projection,tg_date="*",freq="*",pola="*"):
     year = str(tg_date.year)
-    days = (tg_date - datetime.datetime.strptime(year,"%Y")).days # TODO voir comment enlever le +1
+    days = (tg_date - datetime.datetime.strptime(year,"%Y")).days 
     delta_min, fn_min = np.iinfo(np.int32).max, None
     for offset in [-1,0,1]:
         fns = glob.glob(dir+ rf"/*/*{year}{days+offset}-{freq}{pola}-*.nc")
