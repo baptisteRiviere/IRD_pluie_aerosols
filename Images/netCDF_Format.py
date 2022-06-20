@@ -23,7 +23,10 @@ class NetCDF_Format(IFormat):
     def project(in_path,out_path,projection,attribute):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
-        scale_factor = f.variables[attribute].scale_factor
+        try :
+            scale_factor = f.variables[attribute].scale_factor
+        except AttributeError:
+            scale_factor = 1
         arr = ds.GetRasterBand(1).ReadAsArray()*scale_factor
 
         # TODO : améliorer les 8 lignes pro (permettent de prendre en compte le scale factor)
@@ -65,27 +68,24 @@ class NetCDF_Format(IFormat):
         return Image(array*scale_factor,lons,lats)
         
         
-    def getTime(in_path,projection,attribute="TB_time"):
+    def getAcqDates(in_path,format='%Y-%m-%dT%H:%M:%S.%f%z'):
         ds = nc.Dataset(in_path)
-        img = NetCDF_Format.project(in_path,r"temporary.tiff",projection,attribute)
-        minutes = np.int(np.mean(img.array))
-        start_date = datetime.datetime.strptime(ds.time_coverage_start, '%Y-%m-%dT%H:%M:%S.%f%z')
-        acq_date_utc = start_date + datetime.timedelta(hours=+3,minutes=minutes)
-        return acq_date_utc
-
+        start_date = datetime.datetime.strptime(ds.time_coverage_start, format)
+        end_date = datetime.datetime.strptime(ds.time_coverage_end, format)
+        return start_date,end_date
 
 if __name__ == '__main__':
 
     proj_path = r"Images/param_test.json"
-    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2021364-91V-E-GRD-CSU-v1.5.nc'
+    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2020334-91V-E-GRD-CSU-v1.5.nc'
     attribute = "TB"
     out_path = r"../data/test_SSMI.tiff"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    dt = NetCDF_Format.getTime(netcdf_path,projection,attribute="TB_time")
-    
+    start_dt, end_dt = NetCDF_Format.getAcqDates(netcdf_path)
+    #print(start_dt)
+
+    img = NetCDF_Format.project(netcdf_path,"test.tiff",projection,"TB_num_samples")
+    img.show()
 
     
-    
-
-

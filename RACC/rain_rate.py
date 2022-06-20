@@ -11,34 +11,7 @@ import datetime
 projection_path = r"Images/param_guy.json"
 projection = json.load(open(projection_path, "r", encoding="utf-8"))
 
-def search(dir,projection,tg_date="*",freq="*",pola="*"):
-    year = str(tg_date.year)
-    days = (tg_date - datetime.datetime.strptime(year,"%Y")).days 
-    delta_min, fn_min = np.iinfo(np.int32).max, None
-    for offset in [-1,0,1]:
-        fns = glob.glob(dir+ rf"/*/*{year}{days+offset}-{freq}{pola}-*.nc")
-        for fn in fns:
-            file = File(fn)
-            acq_date = file.getTime(projection,"TB_time").replace(tzinfo=None)
-            img = file.project(r"../data/test.tiff",projection,"TB")
-            delta = (tg_date-acq_date).total_seconds()
-            try :
-                unique, counts = np.unique(img.array, return_counts=True)
-                zero_rate = dict(zip(unique, counts))[0]/(img.array.shape[0]*img.array.shape[1])
-            except KeyError:
-                zero_rate = 0
-            print(acq_date, zero_rate)
-            if (zero_rate < 0.1) and (np.abs(delta) < delta_min):
-                delta_min, fn_min = delta, fn
-    file = File(fn_min)
-    return file, file.getTime(projection,"TB_time")
 
-
-date = datetime.datetime.strptime("21/12/20 16:30", "%y/%m/%d %H:%M") ; freq = 91 ; pola = "*"
-file,acq_time = search("../data/SSMI/download_dec_2021",projection,date,freq,pola)
-print(acq_time)
-
-"""
 for fn in fns:
     file = File(fn)
     img = file.getImage("TB")
@@ -78,8 +51,5 @@ lons, lats = File(paires[date]["19V"]).getImage(1).lons, File(paires[date]["19V"
 img = Image(R*1000,lons,lats)
 img.save(projection,r"../data/SSMI/rain_rate.tiff")
 #0.125
-
-
-"""
 
 

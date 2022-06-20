@@ -26,8 +26,8 @@ class File:
     def getImage(self,attribute):
         return self.format.getImage(self.path,attribute)
 
-    def getTime(self,projection,attribute):
-        return self.format.getTime(self.path,projection,attribute)
+    def getAcqDates(self):
+        return self.format.getAcqDates(self.path)
         
 
 

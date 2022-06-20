@@ -41,7 +41,8 @@ class Image:
         s2 = signal.convolve2d(im2, kernel, mode="same")
         ns = signal.convolve2d(ones, kernel, mode="same")
         
-        arr_var = np.sqrt((s2 - s**2 / ns) / ns)
+        arr_var = np.sqrt(abs((s2 - s**2 / ns) / ns)) # TODO : enlever abs si possible
+        
         img_var = Image(arr_var,self.lons,self.lats,self.proj)
 
         return img_var

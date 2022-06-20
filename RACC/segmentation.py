@@ -1,3 +1,4 @@
+from cmath import nan
 import numpy as np
 import glob
 import json
@@ -46,12 +47,12 @@ def standard_scaler(X):
     X_min = np.min(X, axis=0)
     return (X-X_min)/(X_max-X_min), X_max, X_min
 
-def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=False,show=True,save=True):
+def classification(in_dir,out_dir,projection,N=20,epsilon=0.01,T=100,standardisation=False,show=True,save=True):
     """
     classification des images à partir de la méthode des Kmeans
 
     Args :
-        main_dir (string): chemin d'accès au répertoire contenant les images à classifier
+        in_dir (string): chemin d'accès au répertoire contenant les images à classifier
         N (int) : nombre de classes
         epsilon (float): seuil à partir duquel on considère que les centres de clusters convergent après 2 itération (norme de Frobenius)
         T (int) : nombre d'itérations maximum
@@ -60,10 +61,11 @@ def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=F
         array_pred (np.array): image de la prédiction finale sur les images
         centers (np.array): centres des classes 
     """
-    img_paths = glob.glob(main_dir+r"\*.tiff") # récupération de toutes les images geotiff du dossier
+    img_paths = glob.glob(in_dir+r"\*.tiff") # récupération de toutes les images geotiff du dossier
     images = [File(img_path).getImage(1) for img_path in img_paths]
     
     X, (x,y), lons, lats = generate_X(images)
+
     if standardisation : # la standardisation permet de comparer les données sur les mêmes plages de valeur
         X,X_max,X_min = standard_scaler(X)  
     else : 
@@ -79,7 +81,6 @@ def classification(main_dir,projection,N=20,epsilon=0.01,T=100,standardisation=F
     centers = centers*(X_max-X_min)+X_min 
 
     if save:
-        out_dir = main_dir + "/result"
         if not (os.path.exists(out_dir)):
             os.makedirs(out_dir)
         np.save(out_dir+"/centers.npy",centers)
@@ -97,7 +98,8 @@ if __name__ == '__main__':
     projection = json.load(open(r"Images/param_guy.json", "r", encoding="utf-8"))
 
     directory = r"../data/RACC/train"
-    array_pred,centers = classification(directory,projection,N=10,epsilon=0.001,T=100)
+    out_dir = r"../data/RACC/train"
+    array_pred,centers = classification(directory,out_dir,projection,N=10,epsilon=0.001,T=100)
     print(centers)
     
 
