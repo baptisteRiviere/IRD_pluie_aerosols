@@ -2,6 +2,7 @@ import numpy as np
 from satpy import Scene
 import numpy.ma as ma
 import json 
+from datetime import datetime, timezone, tzinfo
 
 from Image import Image
 import georef as grf
@@ -19,7 +20,7 @@ class Nat_Format(IFormat):
     
     # TODO : moyen pour avoir reader et calibration en paramètre
 
-    def project(in_path,out_path,projection,attribute):
+    def project(in_path,projection,attribute=1,out_path=False):
         src_image = Nat_Format.getImage(in_path,attribute)
         new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
         return Image(new_array, new_lons, new_lats)
@@ -58,16 +59,25 @@ class Nat_Format(IFormat):
             print(f"ERROR: la température de brillance n'est pas définie pour {attribute}")
             return False
 
-    
+    def getAcqDates(in_path,format='%Y-%m-%d %H:%M:%S.%f'):
+        reader = "seviri_l1b_native"
+        scn = Scene(filenames = {reader:[in_path]})
+        start_date = scn.start_time.replace(tzinfo=timezone.utc)
+        end_date = scn.end_time.replace(tzinfo=timezone.utc)
+        return start_date,end_date
             
 
 if __name__ == '__main__':
-    nat_path = r"../data/IR/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
+    nat_path = r"../data/SEVIRI/MSG4-SEVI-MSG15-0100-NA-20211230201243.081000000Z-NA.nat"
     out_path = r"../data/test.tiff"
     attribute = 'IR_087'
-    proj_path = r"RACC/param_guy.json"
+    proj_path = r"../data/param_proj/param_guy.json"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
+    a = Nat_Format.getAcqDates(nat_path)
+    print(a)
+
+    """
     import glob
     fns = glob.glob(r"../data/IR/test/*.nat")
     i = 0
@@ -75,6 +85,7 @@ if __name__ == '__main__':
         print(i, fn)
         i += 1
         Nat_Format.project(fn,rf"../data/IR/test/{i}.tiff",projection,"IR_087")
+    """
     
     
     

@@ -20,7 +20,7 @@ class NetCDF_Format(IFormat):
     L'architecture est inspirée du Strategy pattern
     """
     
-    def project(in_path,out_path,projection,attribute):
+    def project(in_path,projection,attribute=1,out_path=False):
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
         try :
@@ -31,7 +31,7 @@ class NetCDF_Format(IFormat):
 
         # TODO : améliorer les 8 lignes pro (permettent de prendre en compte le scale factor)
         driver = gdal.GetDriverByName('GTiff')
-        new_ds = driver.Create("temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
+        new_ds = driver.Create(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", ds.RasterXSize, ds.RasterYSize, 1, gdal.GDT_Float32)
 
         new_ds.SetGeoTransform(ds.GetGeoTransform())
         new_ds.SetProjection(ds.GetProjection())
@@ -48,7 +48,7 @@ class NetCDF_Format(IFormat):
     
     def getAttributes(in_path):
         ds = nc.Dataset(in_path,'r')
-        return ds.variables.keys()
+        return list(ds.variables.keys())
 
     def getImage(in_path,attribute):
         """
@@ -77,7 +77,7 @@ class NetCDF_Format(IFormat):
 if __name__ == '__main__':
 
     proj_path = r"Images/param_test.json"
-    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N25km-F16_SSMIS-2020334-91V-E-GRD-CSU-v1.5.nc'
+    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_T3.125km-F18_SSMIS-2020351-91H-D-SIR-CSU-v1.5.nc'
     attribute = "TB"
     out_path = r"../data/test_SSMI.tiff"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))

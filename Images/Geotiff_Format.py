@@ -13,14 +13,10 @@ class Geotiff_Format:
     L'architecture est inspirée du Strategy pattern
     """
     
-    def project(in_path,out_path,projection,attribute):
-        try :
-            src_image = Geotiff_Format.getImage(in_path,attribute)
-            new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
-            return Image(new_array, new_lons, new_lats)
-        except :
-            print(f"ERROR: l'image {in_path} n'a pas pu être projetée pour l'attribut {attribute}")
-            return False
+    def project(in_path,projection,attribute=1,out_path=False):
+        src_image = Geotiff_Format.getImage(in_path,attribute)
+        new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
+        return Image(new_array, new_lons, new_lats)
         
     def getResolution(in_path,attribute):
         ds = gdal.Open(in_path)

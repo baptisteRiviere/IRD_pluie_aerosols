@@ -1,6 +1,7 @@
 import numpy as np
 from osgeo import gdal
 import pyresample as pr
+import os
 
 
 def define_area(projection):
@@ -30,7 +31,7 @@ def define_area(projection):
     area_def = pr.geometry.AreaDefinition(area_id, proj_id, description, proj_dict, width, height, area_extent)
     return area_def
 
-def georef_ds(ds,projection,out_path):
+def georef_ds(ds,projection,out_path=False):
     llx,lly,urx,ury = projection["llx"],projection["lly"],projection["urx"],projection["ury"] 
     resolution = projection["resolution"]
     width = int((urx - llx) / resolution)
@@ -44,10 +45,16 @@ def georef_ds(ds,projection,out_path):
         dstSRS="+proj=longlat +datum=WGS84 +no_defs"
         ) # TODO : changer srs
 
-    ds_proj = gdal.Warp(out_path, ds, options=options)
-    return getArrayLonsLats(ds_proj)
+    if out_path:
+        ds_proj = gdal.Warp(out_path, ds, options=options)
+        array,lons,lats = getArrayLonsLats(ds_proj)
+    else :
+        ds_proj = gdal.Warp(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", ds, options=options)
+        array,lons,lats = getArrayLonsLats(ds_proj)
 
-def georef_image(src_image,projection,out_path):
+    return array,lons,lats
+
+def georef_image(src_image,projection,out_path=False):
     outArea = define_area(projection)
     swath_def = pr.geometry.SwathDefinition(lons=src_image.lons, lats=src_image.lats)
     new_array = pr.kd_tree.resample_nearest(    swath_def, 
@@ -66,14 +73,19 @@ def georef_image(src_image,projection,out_path):
     geotransform = (originX, pixelWidth, 0, originY, 0, pixelHeight)
     
     driver = gdal.GetDriverByName('GTiff')
-    out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_Float32)
+    if out_path:
+        out_raster = driver.Create(out_path, cols, rows, 1, gdal.GDT_Float32)
+    else :
+        out_raster = driver.Create(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", cols, rows, 1, gdal.GDT_Float32)
     out_raster.SetGeoTransform(geotransform)
+    
 
     outband = out_raster.GetRasterBand(1)
     outband.WriteArray(new_array) # writting the values
     out_raster.SetProjection(srs)
 
     new_lons, new_lats = outArea.get_lonlats()
+
     return new_array, new_lons, new_lats
 
 def getArrayLonsLats(ds):

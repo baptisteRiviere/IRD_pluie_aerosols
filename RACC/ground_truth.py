@@ -1,13 +1,12 @@
 import numpy as np
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 import csv
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import unicodedata
 
-
-def csv2dict(filename,deb=False):
-    rain = {} ; format = "%Y-%m-%d %H:%M:%S"
+def csv2dict(filename):
+    out_dict = {} ; format = "%Y-%m-%d %H:%M:%S"
     with open(filename, mode="r") as pluies:
         csvreader = csv.reader(pluies)
         header = next(csvreader)
@@ -15,12 +14,12 @@ def csv2dict(filename,deb=False):
         for row in csvreader:
             try:
                 date = datetime.strptime(row[0],format)
-                rain[date] = np.array([float(x) for x in row[1:]])
+                out_dict[date] = np.array([float(x) for x in row[1:]])
             except IndexError: 
                 counter += 1
         if counter > 0:
             print(f"{counter} lignes ont été écartées, il s'agit probablement de lignes vides")
-    return rain,header
+    return out_dict,header
 
 def dict2csv(in_dict,out_filename,header=False):
     format = "%Y-%m-%d %H:%M:%S"
@@ -42,16 +41,15 @@ def get_metadata(filename):
             i+=1
     return metadata
 
-def extract(in_fn,out_fn,start_date,end_date):
-    rain,header = csv2dict(in_fn) ; format = "%Y-%m-%d %H:%M:%S"
-    start_date,end_date = datetime.strptime(start_date,format),datetime.strptime(end_date,format)
+def extract(in_dict,start_date_utc,end_date_utc):
     out_dict = {}
 
-    for acq_date in rain.keys():
-        if start_date < acq_date < end_date:
-            out_dict[acq_date] = rain[acq_date]
+    for acq_date in in_dict.keys():
+        acq_date_utc = acq_date.replace(tzinfo=timezone.utc)
+        if start_date_utc < acq_date_utc < end_date_utc:
+            out_dict[acq_date] = in_dict[acq_date]
 
-    dict2csv(dict,out_fn,header=header)
+    return out_dict
     
 def plot(filename,cols,metd_fn=False,title=False):
     if metd_fn:
@@ -82,26 +80,33 @@ def plot(filename,cols,metd_fn=False,title=False):
     
     plt.show()
 
-def agreg(filename,out_name,timedelta=timedelta(hours=1)):
-    rain,header = csv2dict(filename)
-    dates = list(rain.keys())
+def agreg(in_dict,timedelta=False,method="sum"):
+    dates = list(in_dict.keys())
     start_dt, end_dt = dates[0],dates[-1]
-    period = end_dt - start_dt
-    nb_iter = int(period.total_seconds()/timedelta.total_seconds())
     
-    new_dates = [start_dt + i*timedelta for i in range(nb_iter)]
-    new_rain = {d:np.zeros(rain[d].shape) for d in new_dates}
-
+    if timedelta:
+        period = end_dt - start_dt
+        nb_iter = int(period.total_seconds()/timedelta.total_seconds())
+        new_dates = [start_dt + i*timedelta for i in range(nb_iter)]
+    else :
+        new_dates = [start_dt]
+    
+    #new_rain = {d:np.zeros(in_dict[d].shape) for d in new_dates}
+    data_per_date = {d:[] for d in new_dates}
+    
     for d in dates:
         left_nd, min = new_dates[0],(d-new_dates[0]).total_seconds()
         for nd in new_dates:
             delta = (d-nd).total_seconds()
             if (0 <= delta < min):
                 left_nd, min = nd, delta
-        new_rain[left_nd] = new_rain[left_nd] + rain[d]
-                
+        data_per_date[left_nd] = data_per_date[left_nd] + [list(in_dict[d])]
 
-    dict2csv(new_rain,out_name,header=header)
+    np_method = {"sum":np.sum,"mean":np.mean}
+    new_rain = {d:np_method[method](np.array(data_per_date[d]),axis=0) for d in data_per_date.keys()}
+
+    return new_rain
+    
 
 if __name__ == '__main__':
     format = "%Y-%m-%d %H:%M:%S"
@@ -114,11 +119,6 @@ if __name__ == '__main__':
 
     agr_test = r"../data/pluie_sol/gg_test.csv"
     
-    plot(agr_fn_1j,[4,5,6,7],mtd_fn,title="mesures de pluies au sol par jour en décembre 2020")
-    plot(agr_fn_1h,[4,5,6,7],mtd_fn,title="mesures de pluies au sol par heure en décembre 2020")
-
-
-
-
-
+    plot(agr_fn_1j,[2,4,5,6,7],mtd_fn,title="mesures de pluies au sol par jour en décembre 2020")
+    #plot(agr_fn_1h,[4,5,6,7],mtd_fn,title="mesures de pluies au sol par heure en décembre 2020")
 

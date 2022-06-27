@@ -7,7 +7,7 @@ class IFormat:
     toutes les classes héritant de cette interface fournissent un ensemble de méthodes pour un certain format de données
     """
     
-    def project(in_path,out_path,projection,attribute):
+    def project(in_path,projection,attribute=1,out_path=False):
         return Image(np.array([]),np.array([]),np.array([]),projection)
 
     def getResolution(in_path,attribute):

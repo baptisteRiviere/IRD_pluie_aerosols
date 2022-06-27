@@ -133,7 +133,7 @@ def download(access_token,collection_id,product_id,pfn):
 #     0 if downloaded
 #     1 if zip-file already present, don't download
 #     2 if downloaded file is not a zip file
-def download_zipped_product(collection_id,product_id,access_token):
+def download_zipped_product(collection_id,product_id,access_token,path_download=eds_defs.path_download,path_unzipped=eds_defs.path_unzipped):
   zfn=product_id+'.zip'
   print(path_download)
   pzfn=path_download+"/"+zfn
@@ -150,7 +150,7 @@ def download_zipped_product(collection_id,product_id,access_token):
       if zipfile.is_zipfile(pzfn):
         message("Unzip " + zfn,3);
         with zipfile.ZipFile(pzfn,'r') as zipObj:
-          zipObj.extractall(path=eds_defs.path_unzipped)
+          zipObj.extractall(path=path_unzipped)
         return 0
       else:
         message("WARNING: " + zfn + " not a zipfile; skipped.",2)
@@ -199,12 +199,12 @@ def get_token():
 #############################################################
 # Download  set of files, from start_date to end_date (use datetime())
 #   and Unzip
-def download_dataset(selected_id,product_list):
+def download_dataset(selected_id,product_list,path_download=eds_defs.path_download,path_unzipped=eds_defs.path_unzipped):
   collection_id=selected_id.replace(":","%3A")
   if product_list:
     access_token = get_token()
 
     for product_id in reversed(product_list):
-      download_zipped_product(collection_id,product_id,access_token)
+      download_zipped_product(collection_id,product_id,access_token,path_download,path_unzipped)
 #end def download_dataset
 

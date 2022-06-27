@@ -84,7 +84,7 @@ def classification(in_dir,out_dir,projection,N=20,epsilon=0.01,T=100,standardisa
         if not (os.path.exists(out_dir)):
             os.makedirs(out_dir)
         np.save(out_dir+"/centers.npy",centers)
-        img_classif.save(projection,out_dir+"/result.tiff")
+        img_classif.save(projection,out_dir+"/classified.tiff")
 
     if show:
         img_classif.show(simple=True)

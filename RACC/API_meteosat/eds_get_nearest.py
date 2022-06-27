@@ -6,10 +6,7 @@ import eds_funcs
 import numpy as np
 
 #messages: 0=quiet, 1=errors only, 2: warnings, >2: messages
-eds_defs.verbose_level=2
-
-# Key file
-eds_defs.keys_file='eds.key'
+eds_defs.verbose_level=3
 
 #Which product to use
 selected_id="EO:EUM:DAT:MSG:HRSEVIRI"
@@ -29,9 +26,7 @@ def search_nearest(date):
    
 def download_dataset(product_list,path_download,path_unzipped,keys_file):
     #locations
-    eds_defs.path_download=path_download
-    eds_defs.path_unzipped=path_unzipped
     eds_defs.keys_file=keys_file
 
-    eds_funcs.download_dataset(selected_id,product_list)
+    eds_funcs.download_dataset(selected_id,product_list,path_download,path_unzipped)
 
