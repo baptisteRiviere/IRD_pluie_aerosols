@@ -7,6 +7,7 @@ import unicodedata
 
 def csv2dict(filename):
     out_dict = {} ; format = "%Y-%m-%d %H:%M:%S"
+    print(filename)
     with open(filename, mode="r") as pluies:
         csvreader = csv.reader(pluies)
         header = next(csvreader)
@@ -14,6 +15,9 @@ def csv2dict(filename):
         for row in csvreader:
             try:
                 date = datetime.strptime(row[0],format)
+                for i in range(len(row)):
+                    if row[i] == '':
+                        row[i] = np.NaN
                 out_dict[date] = np.array([float(x) for x in row[1:]])
             except IndexError: 
                 counter += 1
@@ -91,7 +95,6 @@ def agreg(in_dict,timedelta=False,method="sum"):
     else :
         new_dates = [start_dt]
     
-    #new_rain = {d:np.zeros(in_dict[d].shape) for d in new_dates}
     data_per_date = {d:[] for d in new_dates}
     
     for d in dates:
@@ -106,19 +109,25 @@ def agreg(in_dict,timedelta=False,method="sum"):
     new_rain = {d:np_method[method](np.array(data_per_date[d]),axis=0) for d in data_per_date.keys()}
 
     return new_rain
-    
 
 if __name__ == '__main__':
     format = "%Y-%m-%d %H:%M:%S"
     src_fn = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"
-    extr_fn = r"../data/pluie_sol/gg_12-20_6m.csv"
+    extr_fn_6m = r"../data/pluie_sol/gg_12-20_6m.csv"
     agr_fn_1j = r"../data/pluie_sol/gg_12-20_1j.csv"
     agr_fn_1h = r"../data/pluie_sol/gg_12-20_1h.csv"
+    agr_fn_moy_h_par_jour = r"../data/pluie_sol/gg_12-20_1j_moy_h.csv"
     mtd_fn = r"../data/pluie_sol/gauges_guyane_metadata.csv"
-    start_date, end_date = "2020-12-01 00:00:00","2020-12-31 00:00:00"
+    start_date = datetime.strptime("2020-11-29 00:00:00",format).replace(tzinfo=timezone.utc)
+    end_date = datetime.strptime("2021-01-02 00:00:00",format).replace(tzinfo=timezone.utc)
 
     agr_test = r"../data/pluie_sol/gg_test.csv"
+
+    #plot(agr_fn_1h,[1,2,3,4,5,6])
     
-    plot(agr_fn_1j,[2,4,5,6,7],mtd_fn,title="mesures de pluies au sol par jour en décembre 2020")
-    #plot(agr_fn_1h,[4,5,6,7],mtd_fn,title="mesures de pluies au sol par heure en décembre 2020")
+    a0 = csv2dict(agr_fn_1h)[0]
+    a = agreg(a0,timedelta=timedelta(days=1),method="mean")
+    dict2csv(a,agr_fn_moy_h_par_jour)
+    plot(agr_fn_moy_h_par_jour,[2,4,5,6,7],mtd_fn,title="mesures de pluies au sol par jour en décembre 2020")
+    #plot(extr_fn_6m,[4,5,6,7],mtd_fn,title="mesures de pluies au sol par heure en décembre 2020")
 

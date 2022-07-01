@@ -204,7 +204,9 @@ def download_dataset(selected_id,product_list,path_download=eds_defs.path_downlo
   if product_list:
     access_token = get_token()
 
+    n = len(product_list) ; i=0
     for product_id in reversed(product_list):
+      i+=1 ; print(f"downloading {i}/{n}")
       download_zipped_product(collection_id,product_id,access_token,path_download,path_unzipped)
 #end def download_dataset
 

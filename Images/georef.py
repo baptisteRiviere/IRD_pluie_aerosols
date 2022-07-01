@@ -2,6 +2,7 @@ import numpy as np
 from osgeo import gdal
 import pyresample as pr
 import os
+import warnings
 
 
 def define_area(projection):
@@ -55,6 +56,7 @@ def georef_ds(ds,projection,out_path=False):
     return array,lons,lats
 
 def georef_image(src_image,projection,out_path=False):
+    warnings.filterwarnings('ignore')
     outArea = define_area(projection)
     swath_def = pr.geometry.SwathDefinition(lons=src_image.lons, lats=src_image.lats)
     new_array = pr.kd_tree.resample_nearest(    swath_def, 

@@ -77,15 +77,26 @@ class NetCDF_Format(IFormat):
 if __name__ == '__main__':
 
     proj_path = r"Images/param_test.json"
-    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_T3.125km-F18_SSMIS-2020351-91H-D-SIR-CSU-v1.5.nc'
+    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_T3.125km-F16_SSMIS-2020336-91H-A-SIR-CSU-v1.5.nc'
     attribute = "TB"
     out_path = r"../data/test_SSMI.tiff"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    start_dt, end_dt = NetCDF_Format.getAcqDates(netcdf_path)
-    #print(start_dt)
+    
+    #start_dt, end_dt = NetCDF_Format.getAcqDates(netcdf_path)
+    
 
-    img = NetCDF_Format.project(netcdf_path,"test.tiff",projection,"TB_num_samples")
-    img.show()
+    #img = NetCDF_Format.project(netcdf_path,projection,"TB")
+    #img.show()
+
+
+    netcdf_path = r"C:\Users\Baptiste\Documents\ENSG\stage\data\IMERG_FR\IMERG_FR_v06_Progysat.nc"
+    ds = gdal.Open("NETCDF:{0}:{1}".format(netcdf_path, attribute))
+    f = nc.Dataset(netcdf_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
+    a = f.variables
+
+    print(a)
+
+    #arr = ds.GetRasterBand(1).ReadAsArray()*scale_factor
 
     

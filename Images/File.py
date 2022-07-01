@@ -37,10 +37,15 @@ if __name__ == "__main__":
     attribute = "TB"
     out_path = r'../data/test.tiff'
     projection = json.load(open(r"../data/param_proj/param_guy.json", "r", encoding="utf-8"))
-
+    """
     file = File(in_path)
     dates = file.getAcqDates()
     print(dates)
     img = file.project(projection,attribute)
     img.show()
+    """
+
+
+    
+
 
