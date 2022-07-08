@@ -105,13 +105,13 @@ def get_token():
     return token
 
 
-def get_login_credentials():
+def get_login_credentials(keys_filename):
     """Get user credentials from .netrc or prompt for input."""
     credentials = None
     token = None
     
     try:
-        json_file = json.load(open(r"../../data/keys/mdp_NSIDC.json", "r", encoding="utf-8"))
+        json_file = json.load(open(keys_filename, "r", encoding="utf-8"))
         username = json_file["username"]
         password = json_file["password"]
         if username == 'token':
@@ -271,7 +271,7 @@ def get_login_response(url, credentials, token):
     return response
 
 
-def cmr_download(urls, out_dir, force=False, quiet=False):
+def cmr_download(urls, out_dir, keys_filename, force=False, quiet=False):
     """Download files from list of urls."""
     if not urls:
         return
@@ -286,7 +286,7 @@ def cmr_download(urls, out_dir, force=False, quiet=False):
         if not credentials and not token:
             p = urlparse(url)
             if p.scheme == 'https':
-                credentials, token = get_login_credentials()
+                credentials, token = get_login_credentials(keys_filename)
 
         filename = url.split('/')[-1]
         if not quiet:
@@ -418,6 +418,7 @@ def cmr_search(short_name, version, time_start, time_end,
 
 
 def main(argv=None):
+    keys_filename = r"../../data/keys/mdp_NSIDC.json"
     global short_name, version, time_start, time_end, bounding_box, \
         polygon, filename_filter, url_list
 
@@ -462,7 +463,7 @@ def main(argv=None):
                                   bounding_box=bounding_box, polygon=polygon,
                                   filename_filter=filename_filter, quiet=quiet)
 
-        cmr_download(url_list, out_dir, force=force, quiet=quiet)
+        cmr_download(url_list, out_dir, keys_filename, force=force, quiet=quiet)
     except KeyboardInterrupt:
         quit()
 

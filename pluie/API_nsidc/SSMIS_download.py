@@ -10,9 +10,8 @@ sys.path.insert(0, r'Images')
 from File import File
 
 
-def download_url_list(download_dir,url_list,d,projection,zero_rate_min=0.2,format="%Y-%m-%dT%H:%M:%S.%f%z",attribut="TB"):
+def download_url_list(download_dir,url_list,tg_date,projection,keys_filename,no_data_rate_min=0.2,format="%Y-%m-%dT%H:%M:%S.%f%z",attribut="TB"):
 
-    tg_date = datetime.strptime(d,format)
     for url in url_list:
         if url[-2:] == "nc":
             filename = download_dir+ "/" + url.split('/')[-1]
@@ -20,26 +19,22 @@ def download_url_list(download_dir,url_list,d,projection,zero_rate_min=0.2,forma
                 print(f"the file {filename} has already been downloaded")
             else:
                 print(f"the file {filename} is being downloaded")
-                cmr_download([url,url+".xml"], download_dir, quiet=True)
+                cmr_download([url,url+".xml"], download_dir, keys_filename, quiet=True)
             file = File(filename)
             img = file.project(projection,attribut)
-            try : # on compte les occurences de 0 pour déterminer si le fichier est corrompu
-                unique, counts = np.unique(img.array, return_counts=True)
-                zero_rate = dict(zip(unique, counts))[0]/(img.array.shape[0]*img.array.shape[1])
-            except KeyError: # aucune occurence de 0
-                zero_rate = 0
+            no_data_rate = np.count_nonzero(np.isnan(img.array))/(img.array.shape[0]*img.array.shape[1])
             start_date, end_date = file.getAcqDates()
-            print(f"image analysée : zero_rate={zero_rate}, start_date: {start_date}, end_date: {end_date}")
-            if (zero_rate < zero_rate_min):
-                print(f"image trouvée à la date {d}")
+            print(f"image analysée : no_data_rate={no_data_rate}, start_date: {start_date}, end_date: {end_date}")
+            if no_data_rate < no_data_rate_min:
+                print(f"image trouvée à la date {tg_date}")
                 img.show()
                 return filename, start_date, end_date
     
     return False
 
-def download_Meteosat_images(d,download_dir,projection,research_parameters,format="%Y-%m-%dT%H:%M:%S.%f%z",zero_rate_min=0.2,recurs_iter=0):
+def download_SSMIS_image(tg_date,download_dir,projection,research_parameters,keys_filename,format="%Y-%m-%dT%H:%M:%S.%f%z",no_data_rate_min=0.2,recurs_iter=0):
     
-    print(f"_____\nrecherche pour la date {d}")
+    print(f"_____\nrecherche pour la date {tg_date}")
 
     grid = research_parameters["grid"][recurs_iter]
     capteur = research_parameters["capteur"][recurs_iter]
@@ -47,7 +42,6 @@ def download_Meteosat_images(d,download_dir,projection,research_parameters,forma
     passage = research_parameters["passage"][recurs_iter]
     algo = research_parameters["algo"][recurs_iter]
 
-    tg_date = datetime.strptime(d,format)
     tg_year = tg_date.year
     delta = timedelta(hours=12)
     min_date,max_date = tg_date-delta,tg_date+delta
@@ -60,11 +54,11 @@ def download_Meteosat_images(d,download_dir,projection,research_parameters,forma
                             filename_filter=f'NSIDC-0630-EASE2_{grid}-{capteur}-{tg_year}*-{freq}-{passage}-{algo}*', 
                             quiet=True)
     
-    retour = download_url_list(download_dir,url_list,d,projection,zero_rate_min)
+    retour = download_url_list(download_dir,url_list,tg_date,projection,keys_filename,no_data_rate_min)
     if retour :
         return retour
     elif recurs_iter < len(research_parameters["grid"]) -1:
         print("on plonge en profondeur capitaine")
         recurs_iter += 1
-        return download_Meteosat_images(d,download_dir,projection,research_parameters,format,zero_rate_min,recurs_iter)
+        return download_SSMIS_image(tg_date,download_dir,projection,research_parameters,format,no_data_rate_min,recurs_iter)
     return False

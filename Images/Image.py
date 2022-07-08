@@ -32,19 +32,7 @@ class Image:
             plt.show()
 
     def computeVar(self):
-        im = self.array
-        im2 = im**2
-        ones = np.ones(im.shape)
-        
-        kernel = np.ones((3,3))
-        s = signal.convolve2d(im, kernel, mode="same")
-        s2 = signal.convolve2d(im2, kernel, mode="same")
-        ns = signal.convolve2d(ones, kernel, mode="same")
-        
-        arr_var = np.sqrt(abs((s2 - s**2 / ns) / ns)) # TODO : enlever abs si possible
-        
-        img_var = Image(arr_var,self.lons,self.lats,self.proj)
-
+        img_var = Image(compute_var(self.array),self.lons,self.lats,self.proj)
         return img_var
 
     def save(self,projection,out_path):
@@ -56,6 +44,18 @@ class Image:
 
 
 
+def compute_var(array):
+    array2 = array**2
+    ones = np.ones(array.shape)
+    
+    kernel = np.ones((3,3))
+    s = signal.convolve2d(array, kernel, mode="same")
+    s2 = signal.convolve2d(array2, kernel, mode="same")
+    ns = signal.convolve2d(ones, kernel, mode="same")
+    
+    array_var = np.sqrt(abs((s2 - s**2 / ns) / ns)) # TODO : enlever abs si possible
+    return array_var
+        
 
 
 

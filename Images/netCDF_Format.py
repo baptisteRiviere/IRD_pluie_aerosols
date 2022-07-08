@@ -25,9 +25,11 @@ class NetCDF_Format(IFormat):
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
         try :
             scale_factor = f.variables[attribute].scale_factor
+            fill_value = f.variables["TB"]._FillValue
         except AttributeError:
-            scale_factor = 1
+            scale_factor = 1 ; fill_value = 0
         arr = ds.GetRasterBand(1).ReadAsArray()*scale_factor
+        arr = np.where(arr==fill_value,np.NaN,arr)
 
         # TODO : améliorer les 8 lignes pro (permettent de prendre en compte le scale factor)
         driver = gdal.GetDriverByName('GTiff')
@@ -77,7 +79,7 @@ class NetCDF_Format(IFormat):
 if __name__ == '__main__':
 
     proj_path = r"Images/param_test.json"
-    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_T3.125km-F16_SSMIS-2020336-91H-A-SIR-CSU-v1.5.nc'
+    netcdf_path = r'../data/SSMI/NSIDC-0630-EASE2_N3.125km-F17_SSMIS-2020364-91V-E-SIR-CSU-v1.5.nc'
     attribute = "TB"
     out_path = r"../data/test_SSMI.tiff"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
@@ -86,17 +88,16 @@ if __name__ == '__main__':
     #start_dt, end_dt = NetCDF_Format.getAcqDates(netcdf_path)
     
 
-    #img = NetCDF_Format.project(netcdf_path,projection,"TB")
-    #img.show()
+    img = NetCDF_Format.project(netcdf_path,projection,"TB")
+    img.show()
 
-
-    netcdf_path = r"C:\Users\Baptiste\Documents\ENSG\stage\data\IMERG_FR\IMERG_FR_v06_Progysat.nc"
+    
+    #netcdf_path = r"C:\Users\Baptiste\Documents\ENSG\stage\data\IMERG_FR\IMERG_FR_v06_Progysat.nc"
     ds = gdal.Open("NETCDF:{0}:{1}".format(netcdf_path, attribute))
     f = nc.Dataset(netcdf_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
-    a = f.variables
+    a = f.variables["TB"]._FillValue
 
     print(a)
 
     #arr = ds.GetRasterBand(1).ReadAsArray()*scale_factor
-
     

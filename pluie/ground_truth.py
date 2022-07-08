@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import unicodedata
 
-def csv2dict(filename):
+def csv2dict(filename,quiet=False):
     out_dict = {} ; format = "%Y-%m-%d %H:%M:%S"
-    print(filename)
     with open(filename, mode="r") as pluies:
         csvreader = csv.reader(pluies)
         header = next(csvreader)
@@ -21,7 +20,7 @@ def csv2dict(filename):
                 out_dict[date] = np.array([float(x) for x in row[1:]])
             except IndexError: 
                 counter += 1
-        if counter > 0:
+        if counter > 0 and (not quiet):
             print(f"{counter} lignes ont été écartées, il s'agit probablement de lignes vides")
     return out_dict,header
 
@@ -47,14 +46,22 @@ def get_metadata(filename):
 
 def extract(in_dict,start_date_utc,end_date_utc):
     out_dict = {}
-
+    tg_date_utc = start_date_utc + timedelta(seconds=(end_date_utc-start_date_utc).total_seconds())
+    
+    nearest_acq_date = list(in_dict.keys())[0]
     for acq_date in in_dict.keys():
         acq_date_utc = acq_date.replace(tzinfo=timezone.utc)
         if start_date_utc < acq_date_utc < end_date_utc:
             out_dict[acq_date] = in_dict[acq_date]
+        if abs((acq_date_utc - tg_date_utc).total_seconds()) < abs((nearest_acq_date.replace(tzinfo=timezone.utc) - tg_date_utc).total_seconds()):
+            nearest_acq_date = acq_date
 
-    return out_dict
+    if len(out_dict.keys()) == 0:
+        print("il n'existe pas de données dans la plage temporelle en entrée, le dictionnaire en sortie ne contient que la date la plus proche")
+        out_dict[nearest_acq_date] = in_dict[nearest_acq_date]
     
+    return out_dict
+
 def plot(filename,cols,metd_fn=False,title=False):
     if metd_fn:
         metadata = get_metadata(metd_fn)
@@ -86,8 +93,11 @@ def plot(filename,cols,metd_fn=False,title=False):
 
 def agreg(in_dict,timedelta=False,method="sum"):
     dates = list(in_dict.keys())
+    if len(dates) == 1:
+        print("il n'existe qu'une seule date, impossible d'agréger ces données")
+        return in_dict
+
     start_dt, end_dt = dates[0],dates[-1]
-    
     if timedelta:
         period = end_dt - start_dt
         nb_iter = int(period.total_seconds()/timedelta.total_seconds())
@@ -96,7 +106,6 @@ def agreg(in_dict,timedelta=False,method="sum"):
         new_dates = [start_dt]
     
     data_per_date = {d:[] for d in new_dates}
-    
     for d in dates:
         left_nd, min = new_dates[0],(d-new_dates[0]).total_seconds()
         for nd in new_dates:

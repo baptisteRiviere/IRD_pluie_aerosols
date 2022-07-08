@@ -37,25 +37,13 @@ def save_csv(data_path,gt_fn,mtd_fn,csv_filename,projection,attribute):
         
         file = File(fn)
         img = file.project(projection,attribute)
-        img_angle = file.project(projection,"Incidence_angle")
+        img_angle = file.project(projection,"TB")
 
-        try : # on compte les occurences de 0 pour déterminer si le fichier est corrompu
-            unique, counts = np.unique(img.array, return_counts=True)
-            zero_rate = dict(zip(unique, counts))[0]/(img.array.shape[0]*img.array.shape[1])
-        except KeyError: # aucune occurence de 0
-            zero_rate = 0
-
-        if zero_rate < 0.1:
-            incid_angle = np.mean(img_angle.array)
+        no_data_rate = np.count_nonzero(np.isnan(img.array))/(img.array.shape[0]*img.array.shape[1])
+        if no_data_rate < 0.1:
             try:
                 start_date, end_date = file.getAcqDates()
                 extr_gt_dict = gt.extract(gt_dict,start_date,end_date)
-                print(extr_gt_dict)
-                break
-            except:
-                pass
-                """
-
                 agr_gt_dict = gt.agreg(extr_gt_dict,method="mean")
                 agr_gt = np.array([agr_gt_dict[d] for d in agr_gt_dict.keys()])
                 for k in metadata_gt.keys():
@@ -64,7 +52,7 @@ def save_csv(data_path,gt_fn,mtd_fn,csv_filename,projection,attribute):
                     idx_lat,idx_lon = (np.abs(lats - lat)).argmin(), (np.abs(lons - lon)).argmin()
                     est_rain = img.array[idx_lat][idx_lon]
                     if not np.isnan(est_rain):
-                        rows.append([capteur,grid,freq,time_pass,algo,incid_angle,str(agr_gt[0][k-1]),str(est_rain)])                     
+                        rows.append([capteur,grid,freq,time_pass,algo,str(agr_gt[0][k-1]),str(est_rain)])                     
             except IndexError:
                 print(fn)
                 print("index error")
@@ -79,7 +67,7 @@ def save_csv(data_path,gt_fn,mtd_fn,csv_filename,projection,attribute):
         write = csv.writer(f,delimiter=',')
         write.writerow(header)
         write.writerows(rows)
-    """
+    
 
 def get_csv(csv_filename):
     data = []
@@ -134,9 +122,9 @@ if __name__ == "__main__":
     attribute = "TB"
     projection = json.load(open(r"../data/param_proj/param_guy.json", "r", encoding="utf-8"))
     
-    #save_csv(data_path,gt_fn,mtd_fn,csv_filename,projection,attribute)
+    save_csv(data_path,gt_fn,mtd_fn,csv_filename,projection,attribute)
 
-
+    """
     data = get_csv(csv_filename)
     # capteur,grid,freq,time_pass,algo,incidence,true_rain,est_rain
 
@@ -152,49 +140,4 @@ if __name__ == "__main__":
 
 
 
-    
-
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-for dictionnary in [grid_dict, capteur_dict, freq_dict, time_pass_dict, algo_dict]:
-    print("\n---------------------------")
-    for key in dictionnary.keys():
-        true_rain_list = dictionnary[key][0]
-        est_rain_list = dictionnary[key][1]
-        corr, _ = spearmanr(est_rain_list, true_rain_list)
-        print(f"correlation pour {key} avec {len(est_rain_list)} points: {corr}")
-
-print(count_zero)
-corr, _ = spearmanr(estim_rain, true_rain)
-print(corr)
-print(len(true_rain))
-plt.scatter(true_rain,estim_rain,s=30, alpha=0.8)
-plt.show()
-
-try : # on compte les occurences de 0 pour déterminer si le fichier est corrompu
-        unique, counts = np.unique(img.array, return_counts=True)
-        zero_rate = dict(zip(unique, counts))[0]/(img.array.shape[0]*img.array.shape[1])
-    except KeyError: # aucune occurence de 0
-        zero_rate = 0
-"""
+    """

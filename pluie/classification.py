@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 import os
 import sys
 
-sys.path.insert(0, r'../Images')
+sys.path.insert(0, r'Images')
 from File import File
 from Image import Image
 
@@ -63,7 +63,8 @@ def classification(in_dir,out_dir,projection,N=20,epsilon=0.01,T=100,standardisa
     """
     img_paths = glob.glob(in_dir+r"\*.tiff") # récupération de toutes les images geotiff du dossier
     images = [File(img_path).getImage(1) for img_path in img_paths]
-    
+    legend = [img_path.split('\\')[1].replace(".tiff","") for img_path in img_paths]
+
     X, (x,y), lons, lats = generate_X(images)
 
     if standardisation : # la standardisation permet de comparer les données sur les mêmes plages de valeur
@@ -89,17 +90,17 @@ def classification(in_dir,out_dir,projection,N=20,epsilon=0.01,T=100,standardisa
     if show:
         img_classif.show(simple=True)
 
-    return array_pred,centers
+    return array_pred,centers,legend
     
 
 
 if __name__ == '__main__':
     # load projection # TODO : faire en sorte que ce soit exactement la même proj ! important
-    projection = json.load(open(r"Images/param_guy.json", "r", encoding="utf-8"))
+    projection = json.load(open(r"../data/param_proj/param_guy.json", "r", encoding="utf-8"))
 
-    directory = r"../data/RACC/train"
-    out_dir = r"../data/RACC/train"
-    array_pred,centers = classification(directory,out_dir,projection,N=10,epsilon=0.001,T=100)
+    directory = r"../data/RACC/mai_2020/agregation"
+    out_dir = None
+    array_pred,centers,kmean = classification(directory,out_dir,projection,N=10,epsilon=0.001,T=100,save=False)
     print(centers)
     
 
