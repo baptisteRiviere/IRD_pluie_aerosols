@@ -74,7 +74,7 @@ if __name__ == '__main__':
     proj_path = r"../data/param_proj/param_guy.json"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
-    a = Nat_Format.getAcqDates(nat_path)
+    a = Nat_Format.project(nat_path,projection,attribute)
     print(a)
 
     """

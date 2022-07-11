@@ -3,7 +3,7 @@ from osgeo import gdal
 import pyresample as pr
 import os
 import warnings
-
+import numpy.ma as ma
 
 def define_area(projection):
     """
@@ -64,9 +64,9 @@ def georef_image(src_image,projection,out_path=False):
                                                 outArea,
                                                 radius_of_influence=16000, # in meters
                                                 epsilon=.5,
-                                                fill_value=False
+                                                fill_value=None 
                                                 ) 
-    new_array = np.array(new_array)
+    
     cols = new_array.shape[1]   ; rows = new_array.shape[0]
     pixelWidth = (outArea.area_extent[2] - outArea.area_extent[0]) / cols
     pixelHeight = (outArea.area_extent[1] - outArea.area_extent[3]) / rows
@@ -81,7 +81,6 @@ def georef_image(src_image,projection,out_path=False):
         out_raster = driver.Create(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", cols, rows, 1, gdal.GDT_Float32)
     out_raster.SetGeoTransform(geotransform)
     
-
     outband = out_raster.GetRasterBand(1)
     outband.WriteArray(new_array) # writting the values
     out_raster.SetProjection(srs)

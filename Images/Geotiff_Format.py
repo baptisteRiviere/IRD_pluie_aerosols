@@ -42,12 +42,12 @@ class Geotiff_Format:
 
 if __name__ == '__main__':
 
-    geotiff_path = r'../data/Results/IR_georef_test.tiff'
+    geotiff_path = r'../data/temporary.tiff'
     attribute = 1
     
-    proj_path = r"tools/param_guy.json"
+    proj_path = r"../data/param_proj/param_guy.json"
     projection = json.load(open(proj_path, "r", encoding="utf-8"))
 
     out_path = r"../data/test.tiff"
 
-    print(Geotiff_Format.getArrayLonsLats(geotiff_path,attribute))
+    print(Geotiff_Format.project(geotiff_path,projection))

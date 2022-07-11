@@ -1,6 +1,7 @@
 from NetCDF_Format import NetCDF_Format
 from Nat_Format import Nat_Format
 from Geotiff_Format import Geotiff_Format
+from Bin_format import Bin_Format
 import json
 
 from Image import Image
@@ -10,7 +11,7 @@ class File:
     
     def __init__(self, path):
         self.path = path
-        extensions = {"nat":Nat_Format, "nc":NetCDF_Format, "tiff":Geotiff_Format, "tif":Geotiff_Format}
+        extensions = {"nat":Nat_Format, "nc":NetCDF_Format, "tiff":Geotiff_Format, "tif":Geotiff_Format, "bin":Bin_Format}
         self.format = extensions[path.split(".")[-1]]
 
     def project(self,projection,attribute=1,out_path=False):
@@ -29,6 +30,8 @@ class File:
     def getAcqDates(self):
         return self.format.getAcqDates(self.path)
         
+    def getValue(self,lat,lon):
+        return self.format.getValue(self.path,lat,lon)
 
 
 if __name__ == "__main__":

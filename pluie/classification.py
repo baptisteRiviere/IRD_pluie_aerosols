@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 import os
 import sys
 
+sys.path.insert(0, r'../Images')
 sys.path.insert(0, r'Images')
 from File import File
 from Image import Image
@@ -28,7 +29,7 @@ def generate_X(images):
     (p,x,y) = X.shape
     
     lons, lats = images[0].lons, images[0].lats # on conserve les longitudes et latitudes
-    X = X.reshape((p, x*y)).transpose()         # 'applatissement' de l'image en un unique vecteur                   
+    X = X.reshape((p, x*y)).transpose()         # 'applatissement' de l'image en une unique vecteur 
     return X, (x,y), lons, lats
 
 def standard_scaler(X):
@@ -95,14 +96,20 @@ def classification(in_dir,out_dir,projection,N=20,epsilon=0.01,T=100,standardisa
 
 
 if __name__ == '__main__':
-    # load projection # TODO : faire en sorte que ce soit exactement la même proj ! important
     projection = json.load(open(r"../data/param_proj/param_guy.json", "r", encoding="utf-8"))
 
     directory = r"../data/RACC/mai_2020/agregation"
+
+    """
     out_dir = None
     array_pred,centers,kmean = classification(directory,out_dir,projection,N=10,epsilon=0.001,T=100,save=False)
     print(centers)
+    """
     
+    img_paths = glob.glob(directory+r"\*.tiff") 
+    images = [File(img_path).getImage(1) for img_path in img_paths]
+    X, (x,y), lons, lats = generate_X(images)
+    print(X)
 
     
     
