@@ -122,12 +122,12 @@ def agreg(in_dict,timedelta=False,method="sum"):
 if __name__ == '__main__':
     format = "%Y-%m-%d %H:%M:%S"
     src_fn = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"
-    extr_fn_6m = r"../data/pluie_sol/gg_05-20_6m.csv"
-    agr_fn_1j = r"../data/pluie_sol/gg_05-20_1j.csv"
-    agr_fn_1h = r"../data/pluie_sol/gg_05-20_1h.csv"
+    extr_fn_6m = r"../data/pluie_sol/gg_2020_6m.csv"
+    agr_fn_1j = r"../data/pluie_sol/gg_2020_1j.csv"
+    agr_fn_1h = r"../data/pluie_sol/gg_2020_1h.csv"
     metd_fn = r"../data/pluie_sol/gauges_guyane_metadata.csv"
-    start_date = datetime.strptime("2020-04-30 00:00:00",format).replace(tzinfo=timezone.utc)
-    end_date = datetime.strptime("2020-06-01 00:00:00",format).replace(tzinfo=timezone.utc)
+    start_date = datetime.strptime("2020-01-01 00:00:00",format).replace(tzinfo=timezone.utc)
+    end_date = datetime.strptime("2020-12-31 23:59:00",format).replace(tzinfo=timezone.utc)
 
     # extraction pour la période d'intéret
     #src_dict,header = csv2dict(src_fn) 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     #dict2csv(agr_1h_dict,agr_fn_1h,header=header)
 
     agr_1h_dict,header = csv2dict(agr_fn_1h)
-    plot(agr_fn_1h,cols=[1,2,3,4,5,6,7],metd_fn=metd_fn)
+    #plot(agr_fn_1h,cols=[1,2,3,4,5,6,7],metd_fn=metd_fn)
 
     #agr_1j_dict = agreg(agr_1h_dict,timedelta=timedelta(days=1),method="mean")
     #dict2csv(agr_1j_dict,agr_fn_1j,header=header)

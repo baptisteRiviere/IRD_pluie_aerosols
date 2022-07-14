@@ -44,7 +44,7 @@ def georef_ds(ds,projection,out_path=False):
         width=width,
         height=height,
         dstSRS="+proj=longlat +datum=WGS84 +no_defs"
-        ) # TODO : changer srs
+        )
 
     if out_path:
         ds_proj = gdal.Warp(out_path, ds, options=options)
@@ -52,7 +52,7 @@ def georef_ds(ds,projection,out_path=False):
     else :
         ds_proj = gdal.Warp(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", ds, options=options)
         array,lons,lats = getArrayLonsLats(ds_proj)
-
+    print(array)
     return array,lons,lats
 
 def georef_image(src_image,projection,out_path=False):
@@ -66,7 +66,6 @@ def georef_image(src_image,projection,out_path=False):
                                                 epsilon=.5,
                                                 fill_value=None 
                                                 ) 
-    
     cols = new_array.shape[1]   ; rows = new_array.shape[0]
     pixelWidth = (outArea.area_extent[2] - outArea.area_extent[0]) / cols
     pixelHeight = (outArea.area_extent[1] - outArea.area_extent[3]) / rows
