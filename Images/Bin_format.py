@@ -55,11 +55,6 @@ class Bin_Format(IFormat):
         start_date = datetime.strptime(in_path.split(".high")[0][-8:],'%Y%m%d').replace(tzinfo=timezone.utc)
         end_date = (start_date + timedelta(days=1)).replace(tzinfo=timezone.utc)
         return start_date,end_date
-        
-    def getValue(in_path, lat, lon):
-        img = Bin_Format.getImage(in_path, attribute=None)
-        y,x = (np.abs(img.lats.T[0] - lat)).argmin(), (np.abs(img.lons[0] - lon)).argmin()
-        return img.array[x][y]
 
 if __name__ == '__main__':
     nat_path = r"../data/AOT/npp_aot550_edr_gridded_0.25_20200503.high.bin"

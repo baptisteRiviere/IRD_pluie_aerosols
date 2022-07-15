@@ -52,7 +52,6 @@ def georef_ds(ds,projection,out_path=False):
     else :
         ds_proj = gdal.Warp(r"C:\Users\Baptiste\Documents\ENSG\stage\data\temporary.tiff", ds, options=options)
         array,lons,lats = getArrayLonsLats(ds_proj)
-    print(array)
     return array,lons,lats
 
 def georef_image(src_image,projection,out_path=False):
