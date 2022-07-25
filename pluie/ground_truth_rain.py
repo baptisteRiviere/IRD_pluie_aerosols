@@ -4,8 +4,19 @@ import csv
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import unicodedata
+import pandas as pd
 
 def csv2dict(filename,quiet=False):
+    """
+    conversion d'un fichier csv en dictionnaire à partir de son chemin d'accès
+
+    Args:
+        filename (string): chemin d'accès au fichier
+        quiet (bool): indique si le programme doit afficher les messages d'avertissement (Default False)
+    Return :
+        out_dict (dict): dictionnaire contenant les données
+        header (array): en tête du fichier
+    """
     out_dict = {} ; format = "%Y-%m-%d %H:%M:%S"
     with open(filename, mode="r") as pluies:
         csvreader = csv.reader(pluies)
@@ -25,6 +36,14 @@ def csv2dict(filename,quiet=False):
     return out_dict,header
 
 def dict2csv(in_dict,out_filename,header=False):
+    """
+    conversion d'un dictionnaire en fichier csv
+
+    Args:
+        in_dict (dict): dictionnaire contenant les données
+        out_filename (string): chemin d'accès au fichier
+        header (array): en tête du fichier (Default False)        
+    """
     format = "%Y-%m-%d %H:%M:%S"
     with open(out_filename, 'w') as f: 
         write = csv.writer(f)
@@ -34,6 +53,14 @@ def dict2csv(in_dict,out_filename,header=False):
         write.writerows(liste)
 
 def get_metadata(filename):
+    """
+    convertion des métadonnées en dictionnaire
+
+    Args:
+        filename (string): chemin d'accès au fichier contenant les métadatas
+    Return:
+        metadata (dict): dictionnaire contenant les métadonnées
+    """
     metadata = {}
     with open(filename, mode="r", encoding="UTF-8") as file:
         csvreader = csv.reader(file)
@@ -49,9 +76,11 @@ def extract(in_dict,start_date_utc,end_date_utc):
     tg_date_utc = start_date_utc + timedelta(seconds=(end_date_utc-start_date_utc).total_seconds())
     
     nearest_acq_date = list(in_dict.keys())[0]
+    nb_rows = len(list(in_dict.keys()))
+    i = 0
     for acq_date in in_dict.keys():
         acq_date_utc = acq_date.replace(tzinfo=timezone.utc)
-        if start_date_utc < acq_date_utc < end_date_utc:
+        if start_date_utc <= acq_date_utc <= end_date_utc:
             out_dict[acq_date] = in_dict[acq_date]
         if abs((acq_date_utc - tg_date_utc).total_seconds()) < abs((nearest_acq_date.replace(tzinfo=timezone.utc) - tg_date_utc).total_seconds()):
             nearest_acq_date = acq_date
@@ -92,7 +121,17 @@ def plot(filename,cols,metd_fn=False,title=False):
     plt.show()
 
 def agreg(in_dict,timedelta=False,method="sum"):
+    """
+    rain_df = pd.read_csv(in_fn)
+    if method == "sum":
+        rain_df.resample(timedelta).sum()
+    elif method == "mean":
+        rain_df.resample("5Min").mean()
+    return rain_df
+
+    """
     dates = list(in_dict.keys())
+    i = 0
     if len(dates) == 1:
         print("il n'existe qu'une seule date, impossible d'agréger ces données")
         return in_dict
@@ -106,6 +145,7 @@ def agreg(in_dict,timedelta=False,method="sum"):
         new_dates = [start_dt]
     
     data_per_date = {d:[] for d in new_dates}
+    nb_rows = len(dates)
     for d in dates:
         left_nd, min = new_dates[0],(d-new_dates[0]).total_seconds()
         for nd in new_dates:
@@ -113,21 +153,29 @@ def agreg(in_dict,timedelta=False,method="sum"):
             if (0 <= delta < min):
                 left_nd, min = nd, delta
         data_per_date[left_nd] = data_per_date[left_nd] + [list(in_dict[d])]
+        i += 1
+        if i % 50 == 0:
+            print(f"{i}/{nb_rows}")
 
-    np_method = {"sum":np.sum,"mean":np.mean}
+    np_method = {"sum":np.nansum,"mean":np.nanmean}
     new_rain = {d:np_method[method](np.array(data_per_date[d]),axis=0) for d in data_per_date.keys()}
 
     return new_rain
+    
 
 if __name__ == '__main__':
     format = "%Y-%m-%d %H:%M:%S"
-    src_fn = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"
-    extr_fn_6m = r"../data/pluie_sol/gg_2020_6m.csv"
-    agr_fn_1j = r"../data/pluie_sol/gg_2020_1j.csv"
-    agr_fn_1h = r"../data/pluie_sol/gg_2020_1h.csv"
+    fn_6min = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"
+    fn_1h = r"../data/pluie_sol/gg_1h.csv"
+    fn_1j = r"../data/pluie_sol/gg_1j.csv"
+    extr_fn_6m = r"../data/pluie_sol/gg_2013-2020_6m.csv"
+    agr_fn_1j = r"../data/pluie_sol/gg_2013-2020_1j.csv"
     metd_fn = r"../data/pluie_sol/gauges_guyane_metadata.csv"
-    start_date = datetime.strptime("2020-01-01 00:00:00",format).replace(tzinfo=timezone.utc)
+    start_date = datetime.strptime("2013-01-01 00:00:00",format).replace(tzinfo=timezone.utc)
     end_date = datetime.strptime("2020-12-31 23:59:00",format).replace(tzinfo=timezone.utc)
+
+
+
 
     # extraction pour la période d'intéret
     #src_dict,header = csv2dict(src_fn) 
@@ -137,15 +185,31 @@ if __name__ == '__main__':
     #extr_6m_dict,header = csv2dict(extr_fn_6m)
     #plot(extr_fn_6m,cols=[1,2,3,4,5,6],metd_fn=metd_fn)
 
+    """
+    rain_df = pd.read_csv(fn_6min)
+    rain_df['time'] = pd.to_datetime(rain_df['time'])
+    rain_1h_df = rain_df.resample('60min', on='time').mean()
+    rain_1h_df.to_csv(fn_1h)
+    """
+
+    fn_1h = r"../data/pluie_sol/gg_2013-2020_1h.csv"
+    rain_1h_df = pd.read_csv(fn_1h)
+    rain_1h_df['time'] = pd.to_datetime(rain_1h_df['time'])
+    rain_1j_df = rain_1h_df.resample('D', on='time').sum()
+    rain_1j_df.to_csv(fn_1j)
+    print(rain_1j_df)
+    
+    
+
     #agr_1h_dict = agreg(extr_6m_dict,timedelta=timedelta(hours=1),method="sum")
     #dict2csv(agr_1h_dict,agr_fn_1h,header=header)
 
-    agr_1h_dict,header = csv2dict(agr_fn_1h)
+    #agr_1h_dict,header = csv2dict(agr_fn_1h)
     #plot(agr_fn_1h,cols=[1,2,3,4,5,6,7],metd_fn=metd_fn)
 
     #agr_1j_dict = agreg(agr_1h_dict,timedelta=timedelta(days=1),method="mean")
     #dict2csv(agr_1j_dict,agr_fn_1j,header=header)
     #plot(agr_fn_1j,cols=[1,2,3,4,5,6],metd_fn=metd_fn)
     
-    agr_1j_dict,header = csv2dict(agr_fn_1j)
-    plot(agr_fn_1j,cols=[1,2,3,4,5,6,7],metd_fn=metd_fn)
+    #agr_1j_dict,header = csv2dict(agr_fn_1j)
+    #plot(agr_fn_1j,cols=[1,2,3,4,5,6,7],metd_fn=metd_fn)

@@ -3,7 +3,7 @@ from osgeo import gdal
 import georef as grf
 import json as json
 from Image import Image
-
+import numpy.ma as ma
 
 class Geotiff_Format:
     """
@@ -31,12 +31,13 @@ class Geotiff_Format:
         ds = gdal.Open(in_path)
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
         array = ds.GetRasterBand(attribute).ReadAsArray()
+        masked_array = ma.array(array, mask=np.where(array==0,1,0))
         lons = np.zeros(array.shape)    ; lats = np.zeros(array.shape)
         for y in range(len(array)):
             for x in range(len(array[0])):
                 lons[y][x] = x_res * x + rot1 * y + x_offset
                 lats[y][x] = rot2 * x + y_res * y + y_offset
-        return Image(array,lons,lats)
+        return Image(masked_array,lons,lats)
         
 
 

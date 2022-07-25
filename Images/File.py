@@ -38,8 +38,8 @@ class File:
     def getAcqDates(self):
         return self.format.getAcqDates(self.path)
         
-    def getPxlValue(self,lat,lon):
-        img = self.format.getImage(in_path, attribute=None)
+    def getPxlValue(self,lat,lon,attribute=1):
+        img = self.format.getImage(self.path, attribute=attribute)
         y,x = (np.abs(img.lats.T[0] - lat)).argmin(), (np.abs(img.lons[0] - lon)).argmin()
         return img.array[x][y]
 

@@ -1,6 +1,6 @@
 
 import requests
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 import os
 import sys
 
@@ -17,19 +17,19 @@ def download_IMERG_image(tg_date,download_dir):
     full_fn = fr"{download_dir}/{fn}"
     result = requests.get(URL)
     if os.path.exists(full_fn):
-        print(f"le fichier a déjà été téléchargé pour la date {tg_date}")
+        print(f"IMERG : le fichier a déjà été téléchargé pour la date {tg_date}")
     else:
-        print(f"téléchargement du fichier pour la date {tg_date}")
+        print(f"IMERG : téléchargement du fichier pour la date {tg_date}")
         result = requests.get(URL)
         try:
             result.raise_for_status()
             with open(full_fn, 'wb') as f:
                 f.write(result.content)
         except:
-            print('requests.get() returned an error code '+str(result.status_code))
+            print('IMERG : requests.get() returned an error code '+str(result.status_code))
             return False
     start_date = datetime(year=tg_date.year,month=tg_date.month,day=tg_date.day,hour=0,minute=0,tzinfo=timezone.utc)
-    end_date = datetime(year=tg_date.year,month=tg_date.month,day=tg_date.day+1,hour=0,minute=0,tzinfo=timezone.utc)
+    end_date = start_date + timedelta(days=1)
     return full_fn,start_date, end_date
 
 if __name__ == "__main__":

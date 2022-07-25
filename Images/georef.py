@@ -80,6 +80,12 @@ def georef_image(src_image,projection,out_path=False):
     out_raster.SetGeoTransform(geotransform)
     
     outband = out_raster.GetRasterBand(1)
+    
+    #new_array = np.where(new_array.mask==0,new_array,-9999)
+    #import matplotlib.pyplot as plt
+    #plt.imshow(new_array)
+    #plt.show()
+    
     outband.WriteArray(new_array) # writting the values
     out_raster.SetProjection(srs)
 
