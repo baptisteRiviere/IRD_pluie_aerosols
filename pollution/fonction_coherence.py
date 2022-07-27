@@ -16,7 +16,7 @@ def join_rain_PM10(rain_path):
     
     result_df = pd.DataFrame()
     
-    for year in [y for y in range(2010,2021)]:
+    for year in [y for y in range(2013,2021)]:
         PM10_path = rf"../data/PM10/Donnees_PM10_{year}.xlsx"           # nom du fichier PM10
         PM10_df = pd.read_excel(PM10_path,skiprows=[1,2])               # lecture du fichier
         PM10_df['date'] = pd.to_datetime(PM10_df['Date'])               # conversion de la date
@@ -37,17 +37,7 @@ def join_rain_PM10(rain_path):
     result_df.to_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
     return result_df
 
-
-if __name__ == "__main__":
-    rain_path = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"         # chemin du fichier pluie
-    #join_rain_PM10(rain_path)
-    
-    df = pd.read_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
-    PM10_array = df["PM10"].array ; rain_array = df["rain"].array
-
-    plt.scatter(PM10_array,rain_array)
-    plt.show()
-
+def coherence():
     freq = 1
     nbelem = len(PM10_array)
 
@@ -60,8 +50,6 @@ if __name__ == "__main__":
     print(f"np_points\t= {len(Cxy)}")
     print(f"corr_max\t= {np.max(Cxy)}")
     
-    
-    print(Cxy)
     #plt.semilogx(f_, Cxy_)
     plt.plot(f_, Cxy_)
     plt.grid()
@@ -70,18 +58,21 @@ if __name__ == "__main__":
     plt.ylabel('Coherence')
     plt.show()
 
-    """
+    
 
-    plt.plot(1/f,Cxy_)
-    plt.grid()
-    plt.xlabel('days')
-    plt.ylabel('Coherence')
+if __name__ == "__main__":
+    rain_path = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"         # chemin du fichier pluie
+    #join_rain_PM10(rain_path)
+    
+    df = pd.read_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
+    PM10_array = df["PM10"].array ; rain_array = df["rain"].array
+
+    
+    #Exy = signal.correlate(PM10_array,rain_array,"full")
+    f, Pxx_den = signal.periodogram(rain_array)
+    #print(Pxx_den)
+    plt.plot(f,Pxx_den)
     plt.show()
-    """
-
-
-
-
 
     """
     print(len(PM10_array),len(rain_array))
@@ -129,3 +120,4 @@ if __name__ == "__main__":
     plt.ylabel('Coherence')
     plt.show()
     """
+    

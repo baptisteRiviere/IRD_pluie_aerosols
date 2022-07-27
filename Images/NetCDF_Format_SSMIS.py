@@ -3,7 +3,7 @@ import netCDF4 as nc
 import numpy as np
 import json
 import matplotlib.pyplot as plt
-import datetime
+from datetime import datetime,timedelta
 
 from Image import Image
 import georef as grf
@@ -71,8 +71,10 @@ class NetCDF_Format_SSMIS(IFormat):
         
     def getAcqDates(in_path,format='%Y-%m-%dT%H:%M:%S.%f%z'):
         ds = nc.Dataset(in_path)
-        start_date = datetime.datetime.strptime(ds.time_coverage_start, format)
-        end_date = datetime.datetime.strptime(ds.time_coverage_end, format)
+        start_date = datetime.strptime(ds.time_coverage_start, format)
+        end_date = datetime.strptime(ds.time_coverage_end, format)
+        #if start_date==end_date:
+        #    end_date = start_date + timedelta(days=1)
         return start_date,end_date
 
 if __name__ == '__main__':
@@ -85,5 +87,7 @@ if __name__ == '__main__':
 
     img = NetCDF_Format_SSMIS.project(netcdf_path,projection,attribute)
     img.show()
+
+    print(NetCDF_Format_SSMIS.getAcqDates(netcdf_path))
 
     

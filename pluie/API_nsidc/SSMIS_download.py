@@ -38,32 +38,36 @@ def download_url_list(download_dir,url_list,tg_date,projection,keys_filename,no_
 
 def download_SSMIS_image(tg_date,download_dir,projection,research_parameters,keys_filename,format="%Y-%m-%dT%H:%M:%S.%f%z",no_data_rate_min=0.2,recurs_iter=0,quiet=False):
     
-    print(f"_____\nrecherche pour la date {tg_date}")
+    print(f"SSMIS : recherche pour la date {tg_date}")
 
-    grid = research_parameters["grid"][recurs_iter]
-    capteur = research_parameters["capteur"][recurs_iter]
-    freq = research_parameters["freq"][recurs_iter]
-    passage = research_parameters["passage"][recurs_iter]
-    algo = research_parameters["algo"][recurs_iter]
+    try:
+        grid = research_parameters["grid"][recurs_iter]
+        capteur = research_parameters["capteur"][recurs_iter]
+        freq = research_parameters["freq"][recurs_iter]
+        passage = research_parameters["passage"][recurs_iter]
+        algo = research_parameters["algo"][recurs_iter]
 
-    tg_year = tg_date.year
-    delta = timedelta(hours=12)
-    min_date,max_date = tg_date-delta,tg_date+delta
-    
-    url_list = cmr_search(  short_name='NSIDC-0630', 
-                            version='1', 
-                            time_start=datetime.strftime(min_date,"%Y-%m-%dT%H:%M:%S")+"Z",
-                            time_end=datetime.strftime(max_date,"%Y-%m-%dT%H:%M:%S")+"Z",
-                            bounding_box='-61.27,-2.38,-47.66,10.86',
-                            filename_filter=f'NSIDC-0630-EASE2_{grid}-{capteur}-{tg_year}*-{freq}-{passage}-{algo}*', 
-                            quiet=quiet)
-    
-    retour = download_url_list(download_dir,url_list,tg_date,projection,keys_filename,no_data_rate_min,quiet=quiet)
-    if retour :
-        return retour
-    elif recurs_iter < len(research_parameters["grid"]) -1:
-        if not quiet:
-            print("on plonge en profondeur capitaine")
-        recurs_iter += 1
-        return download_SSMIS_image(tg_date,download_dir,projection,research_parameters,keys_filename,format,no_data_rate_min,recurs_iter,quiet=quiet)
+        tg_year = tg_date.year
+        delta = timedelta(hours=12)
+        min_date,max_date = tg_date-delta,tg_date+delta
+        
+        url_list = cmr_search(  short_name='NSIDC-0630', 
+                                version='1', 
+                                time_start=datetime.strftime(min_date,"%Y-%m-%dT%H:%M:%S")+"Z",
+                                time_end=datetime.strftime(max_date,"%Y-%m-%dT%H:%M:%S")+"Z",
+                                bounding_box='-61.27,-2.38,-47.66,10.86',
+                                filename_filter=f'NSIDC-0630-EASE2_{grid}-{capteur}-{tg_year}*-{freq}-{passage}-{algo}*', 
+                                quiet=quiet)
+        
+        retour = download_url_list(download_dir,url_list,tg_date,projection,keys_filename,no_data_rate_min,quiet=quiet)
+        if retour :
+            return retour
+        elif recurs_iter < len(research_parameters["grid"]) -1:
+            if not quiet:
+                print("SSMIS : récurisvité")
+            recurs_iter += 1
+            return download_SSMIS_image(tg_date,download_dir,projection,research_parameters,keys_filename,format,no_data_rate_min,recurs_iter,quiet=quiet)
+    except :
+        print(f"SSMIS : le fichier pour la date {tg_date} n'as pas été téléchargé")
+        return False
     return False
