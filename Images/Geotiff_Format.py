@@ -14,20 +14,62 @@ class Geotiff_Format:
     """
     
     def project(in_path,projection,attribute=1,out_path=False):
+        """
+        effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            projection (dict) : dictionnaire contenant les clés suivantes
+                area_id,description,proj_id,proj,ellps,datum,llx,lly,urx,ury,resolution
+            attribute (string, int) : attribut à extraire du fichier (Default 1)
+            out_path (string, bool) : nom du fichier en sortie (Default False)
+
+        Return:
+            img_proj (Image) : image projetée
+        """
         src_image = Geotiff_Format.getImage(in_path,attribute)
         new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
         return Image(new_array, new_lons, new_lats)
         
     def getResolution(in_path,attribute):
+        """
+        renvoie les résolutions spatiales en x et y du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            attribute (string, int) : attribut à extraire du fichier
+
+        Return:
+            (tuple) : résolution x et y
+        """
         ds = gdal.Open(in_path)
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
         return (x_res,-y_res)
 
     def getAttributes(in_path):
+        """
+        renvoie la liste d'attributs du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            (list) : liste des attributs
+        """
         ds = gdal.Open(in_path)
         return [i+1 for i in range(ds.RasterCount)]
 
     def getImage(in_path,attribute):
+        """
+        Renvoie l'image correspondant à un certain attribut du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+            attribute (string, int) : attribut à extraire du fichier
+
+        Return:
+            (Image)
+        """
         ds = gdal.Open(in_path)
         (x_offset, x_res, rot1, y_offset, rot2, y_res) = ds.GetGeoTransform()
         array = ds.GetRasterBand(attribute).ReadAsArray()

@@ -7,7 +7,6 @@ import cartopy
 import georef as grf
 
 class Image:
-    # TODO : documentation
     
     def __init__(self, array, lons, lats, proj=None, date=None):
         self.array = array

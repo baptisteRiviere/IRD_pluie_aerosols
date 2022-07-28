@@ -27,12 +27,28 @@ def extract(rain_df,start_date_utc,end_date_utc):
     
     return out_df
 
-def plot(rain_fn,mtd_fn,cols=False,title=False):
-    rain_df = pd.read_csv(rain_fn)
+def plot(rain,mtd_fn,cols=False,title=False):
+    """
+    Affiche les valeurs de pluie
+
+    Args:
+        rain (str, pandas dataframe) : pandas dataframe ou lien vers le csv contenant les données pluies à afficher
+        mtd_fn (str) : fichier csv contenant les métadonnées
+        cols (bool, list) : liste des indices des colonnes à afficher (Default False)
+        title (bool, str) : titre du graphique (Default False)
+    """
+    if isinstance(rain, str):
+        rain_df = pd.read_csv(rain)
+    else:
+        rain_df = rain
     mtd = pd.read_csv(mtd_fn)
 
-    rain_df['time'] = pd.to_datetime(rain_df['time'],utc=True)
-    dates = rain_df["time"]
+    if rain_df.index.name != 'time':
+        rain_df['time'] = pd.to_datetime(rain_df['time'],utc=True)
+        rain_df.set_index("time",inplace=True)
+
+    dates = rain_df.index.values
+    
     if cols == False:
         cols = rain_df.columns[1:]
     elif type(cols[0]) == int:
@@ -54,35 +70,46 @@ def plot(rain_fn,mtd_fn,cols=False,title=False):
     ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
     ax.legend(names)
     fig.autofmt_xdate()
-    ax.set_ylabel('accumulation de pluie sur la période (mm)')
+    ax.set_ylabel('moyenne des pluies sur la période (mm/h)')
+    ax.set_xlabel('mois')
     
     plt.show()
     
-    
+
 if __name__ == '__main__':
 
     fn_src = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"
     fn_1h = r"../data/pluie_sol/gauges_guyane_1h_utc.csv"
+    fn_1m = r"../data/pluie_sol/gauges_guyane_1m_utc.csv"
     fn_mtd = r"../data/pluie_sol/gauges_guyane_metadata.csv"
 
-
-    start_date  = datetime(2019,1,6,18,1,tzinfo=timezone.utc)
-    end_date    = datetime(2019,1,6,18,15,tzinfo=timezone.utc)
     
-    rain_df = pd.read_csv(fn_1h)
-    rain_df_extr = extract(rain_df,start_date,end_date)
-    print(rain_df_extr)
+    """
+    # ouverture du fichier source, somme horaire et enregistrement
+    rain_df = pd.read_csv(fn_src)
+    rain_df['time'] = pd.to_datetime(rain_df['time'],utc=True) 
+    rain_df.set_index("time",inplace=True)
+    rain_df_agreg_1h = rain_df.resample(timedelta(hours=1)).agg(pd.Series.sum, skipna=False)
+    rain_df_agreg_1h.to_csv(fn_1h)
+    """
 
     """
-    rain_df = pd.read_csv(fn_src)
-    #rain_df_extr = extract(rain_df,start_date,end_date)
+    # ouverture fichier avec précipitations en mm/h
+    # moyennage sur le mois et enregistrement du fichier
+    rain_df = pd.read_csv(fn_1h)
     rain_df['time'] = pd.to_datetime(rain_df['time'],utc=True)
     rain_df.set_index("time",inplace=True)
-    rain_df_agreg_1h = rain_df.resample(timedelta(hours=1)).sum()
-    #rain_df_agreg_1j = rain_df_agreg_1h.resample(timedelta(days=1)).mean()
-    rain_df_agreg_1h.to_csv(fn_1h)   
-
+    rain_df_agreg_1m = rain_df.resample("M").mean()
+    rain_df_agreg_1m.to_csv(fn_1m)
+    plot(rain_df_agreg_1m,fn_mtd,[6])
     """
-
     
-    #plot(fn_1h,fn_mtd,cols=[1,2,3])
+    """
+    # extraction des précipitations en mm/h
+    start_date  = datetime(2020,1,1,tzinfo=timezone.utc)
+    end_date    = datetime(2020,12,31,tzinfo=timezone.utc)
+    rain_df = pd.read_csv(fn_1h)
+    rain_df_extr = extract(rain_df,start_date,end_date)
+    plot(rain_df_extr,fn_mtd,[0,1,2])
+    """
+    

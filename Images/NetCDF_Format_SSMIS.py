@@ -2,8 +2,7 @@ from osgeo import gdal
 import netCDF4 as nc
 import numpy as np
 import json
-import matplotlib.pyplot as plt
-from datetime import datetime,timedelta
+from datetime import datetime
 
 from Image import Image
 import georef as grf
@@ -21,6 +20,19 @@ class NetCDF_Format_SSMIS(IFormat):
     """
     
     def project(in_path,projection,attribute=1,out_path=False):
+        """
+        effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            projection (dict) : dictionnaire contenant les clés suivantes
+                area_id,description,proj_id,proj,ellps,datum,llx,lly,urx,ury,resolution
+            attribute (string, int) : attribut à extraire du fichier (Default 1)
+            out_path (string, bool) : nom du fichier en sortie (Default False)
+
+        Return:
+            img_proj (Image) : image projetée
+        """
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
         try :
@@ -44,37 +56,52 @@ class NetCDF_Format_SSMIS(IFormat):
         return Image(new_array,new_lons,new_lats)
         
     def getResolution(in_path,attribute):
+        """
+        renvoie les résolutions spatiales en x et y du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            attribute (string, int) : attribut à extraire du fichier
+        
+        Return:
+            (tuple) : résolution x et y
+        """
         ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute))
         (_, x_res, _, _, _, y_res) = ds.GetGeoTransform()
         return (x_res,-y_res)
     
     def getAttributes(in_path):
+        """
+        renvoie la liste d'attributs du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            (list) : liste des attributs
+        """
         ds = nc.Dataset(in_path,'r')
         return list(ds.variables.keys())
 
     def getImage(in_path,attribute):
-        """
-        non fonctionnel
-        """
-        ds = gdal.Open("NETCDF:{0}:{1}".format(in_path, attribute)) # ouverture du fichier avec gdal
-        f = nc.Dataset(in_path) # ouverture du fichier avec netCDF4 pour obtenir certaines informations
-        scale_factor = f.variables[attribute].scale_factor
-        srcSRS = f.variables["crs"].proj4text
-        options = gdal.WarpOptions(
-            format="GTiff",
-            srcSRS=srcSRS,
-            dstSRS="EPSG:4326"
-        ) # TODO : changer srs
-        ds_proj = gdal.Warp(r"test.tiff", ds, options=options)
-        array,lons,lats = grf.getArrayLonsLats(ds_proj)
-        return Image(array*scale_factor,lons,lats)
+        print("la fonction getImage n'est pas fonctionnelle pour le format netCDF_Format_SSMIS")
+        return None
         
-    def getAcqDates(in_path,format='%Y-%m-%dT%H:%M:%S.%f%z'):
+    def getAcqDates(in_path):
+        """
+        Renvoie les dates d'acquisition de l'image contenue dans le fichier 
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            start_date (datetime) : début de la période d'acquisition
+            end_date (datetime) : fin de la période d'acquisition
+        """
+        format='%Y-%m-%dT%H:%M:%S.%f%z'
         ds = nc.Dataset(in_path)
         start_date = datetime.strptime(ds.time_coverage_start, format)
         end_date = datetime.strptime(ds.time_coverage_end, format)
-        #if start_date==end_date:
-        #    end_date = start_date + timedelta(days=1)
         return start_date,end_date
 
 if __name__ == '__main__':

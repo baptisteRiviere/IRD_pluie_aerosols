@@ -1,3 +1,4 @@
+from cv2 import Subdiv2D_PREV_AROUND_RIGHT
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
@@ -5,6 +6,8 @@ import pandas as pd
 import sys
 from datetime import datetime, timedelta, date
 sys.path.insert(0, r'pluie')
+import skccm as ccm
+from skccm.utilities import train_test_split
 
 
 
@@ -37,7 +40,7 @@ def join_rain_PM10(rain_path):
     result_df.to_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
     return result_df
 
-def coherence():
+def coherence(PM10_array,rain_array):
     freq = 1
     nbelem = len(PM10_array)
 
@@ -58,7 +61,13 @@ def coherence():
     plt.ylabel('Coherence')
     plt.show()
 
-    
+def ondelettes(PM10_array,rain_array):
+    a = len(PM10_array)//10
+    widths = np.arange(1, a)
+    cwtmatr = signal.cwt(rain_array, signal.morlet(w=6), widths)
+    plt.imshow(np.abs(cwtmatr), extent=[-len(PM10_array)/2, len(PM10_array)/2, a, 1], aspect='auto')
+    #vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max()
+    plt.show()
 
 if __name__ == "__main__":
     rain_path = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"         # chemin du fichier pluie
@@ -67,12 +76,65 @@ if __name__ == "__main__":
     df = pd.read_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
     PM10_array = df["PM10"].array ; rain_array = df["rain"].array
 
+    #coherence(PM10_array,rain_array)
+
+    lag = 1
+    embed = 3
+    e1 = ccm.Embed(PM10_array)
+    e2 = ccm.Embed(rain_array)
+    X1 = e1.embed_vectors_1d(lag,embed)
+    X2 = e2.embed_vectors_1d(lag,embed)
+
+    #plt.plot(X2)
+    #plt.show()
     
-    #Exy = signal.correlate(PM10_array,rain_array,"full")
-    f, Pxx_den = signal.periodogram(rain_array)
-    #print(Pxx_den)
-    plt.plot(f,Pxx_den)
+    #split the embedded time series
+    x1tr, x1te, x2tr, x2te = train_test_split(X1,X2, percent=.75)
+
+    CCM = ccm.CCM() #initiate the class
+
+    #library lengths to test
+    len_tr = len(x1tr)
+    lib_lens = np.arange(10, len_tr, len_tr/20, dtype='int')
+
+    #test causation
+    CCM.fit(x1tr,x2tr)
+    x1p, x2p = CCM.predict(x1te, x2te,lib_lengths=lib_lens)
+
+    sc1,sc2 = CCM.score()
+
+    plt.plot(sc1)
+    plt.plot(sc2)
     plt.show()
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     """
     print(len(PM10_array),len(rain_array))

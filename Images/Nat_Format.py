@@ -2,7 +2,7 @@ import numpy as np
 from satpy import Scene
 import numpy.ma as ma
 import json 
-from datetime import datetime, timezone, tzinfo
+from datetime import timezone
 
 from Image import Image
 import georef as grf
@@ -21,22 +21,64 @@ class Nat_Format(IFormat):
     # TODO : moyen pour avoir reader et calibration en paramètre
 
     def project(in_path,projection,attribute=1,out_path=False):
+        """
+        effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            projection (dict) : dictionnaire contenant les clés suivantes
+                area_id,description,proj_id,proj,ellps,datum,llx,lly,urx,ury,resolution
+            attribute (string, int) : attribut à extraire du fichier (Default 1)
+            out_path (string, bool) : nom du fichier en sortie (Default False)
+
+        Return:
+            img_proj (Image) : image projetée
+        """
         src_image = Nat_Format.getImage(in_path,attribute)
         new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
         return Image(new_array, new_lons, new_lats)
 
     def getResolution(in_path,attribute):
+        """
+        renvoie les résolutions spatiales en x et y du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            attribute (string, int) : attribut à extraire du fichier
+        
+        Return:
+            (tuple) : résolution x et y
+        """
         reader = "seviri_l1b_native"
         scn = Scene(filenames = {reader:[in_path]})
         scn.load([attribute], calibration = "brightness_temperature")
         return (scn[attribute].resolution,scn[attribute].resolution)
         
     def getAttributes(in_path):
+        """
+        renvoie la liste d'attributs du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            (list) : liste des attributs
+        """
         reader = "seviri_l1b_native"
         scn = Scene(filenames = {reader:[in_path]})
         return scn.available_dataset_names()
 
     def getImage(in_path, attribute):
+        """
+        Renvoie l'image correspondant à un certain attribut du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+            attribute (string, int) : attribut à extraire du fichier
+
+        Return:
+            (Image)
+        """
         try :
             dtype = "float32"
             reader = "seviri_l1b_native" # define reader
@@ -59,7 +101,17 @@ class Nat_Format(IFormat):
             print(f"ERROR: la température de brillance n'est pas définie pour {attribute}")
             return False
 
-    def getAcqDates(in_path,format='%Y-%m-%d %H:%M:%S.%f'):
+    def getAcqDates(in_path):
+        """
+        Renvoie les dates d'acquisition de l'image contenue dans le fichier 
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            start_date (datetime) : début de la période d'acquisition
+            end_date (datetime) : fin de la période d'acquisition
+        """
         reader = "seviri_l1b_native"
         scn = Scene(filenames = {reader:[in_path]})
         start_date = scn.start_time.replace(tzinfo=timezone.utc)

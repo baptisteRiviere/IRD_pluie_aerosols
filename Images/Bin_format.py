@@ -19,20 +19,60 @@ class Bin_Format(IFormat):
     """
 
     def project(in_path,projection,attribute=None,out_path=False):
+        """
+        effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            projection (dict) : dictionnaire contenant les clés suivantes
+                area_id,description,proj_id,proj,ellps,datum,llx,lly,urx,ury,resolution
+            attribute (string, int) : attribut à extraire du fichier (Default 1)
+            out_path (string, bool) : nom du fichier en sortie (Default False)
+
+        Return:
+            img_proj (Image) : image projetée
+        """
         src_image = Bin_Format.getImage(in_path,attribute)
         new_array, new_lons, new_lats = grf.georef_image(src_image,projection,out_path)
         #aot_edr = ma.masked_where((new_array.any() > 5) or (new_array.any() < -100), new_array) # mask aberrant values
         return Image(new_array, new_lons, new_lats)
 
     def getResolution(in_path,attribute=None):
+        """
+        renvoie les résolutions spatiales en x et y du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier à projeter
+            attribute (string, int) : attribut à extraire du fichier
+        
+        Return:
+            (tuple) : résolution x et y
+        """
         return (0.25,0.25)
         
     def getAttributes(in_path):
+        """
+        renvoie la liste d'attributs du fichier
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            (list) : liste des attributs
+        """
         return None
 
     def getImage(in_path, attribute=None):
         """
+        Renvoie l'image correspondant à un certain attribut du fichier
         inspiré du code de Laura Orgambide
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+            attribute (string, int) : attribut à extraire du fichier
+                
+        Return:
+            (Image)
         """
         imnp = np.fromfile(in_path, dtype = np.single)
         aot_edr = np.reshape(imnp, [int(len(imnp)/1440), 1440])[:720, :1440]
@@ -51,7 +91,17 @@ class Bin_Format(IFormat):
 
         return Image(aot_edr,lons,lats)
 
-    def getAcqDates(in_path,format=None):
+    def getAcqDates(in_path):
+        """
+        Renvoie les dates d'acquisition de l'image contenue dans le fichier 
+
+        Args:
+            in_path (string) : chemin d'accès au fichier
+        
+        Return:
+            start_date (datetime) : début de la période d'acquisition
+            end_date (datetime) : fin de la période d'acquisition
+        """
         start_date = datetime.strptime(in_path.split(".high")[0][-8:],'%Y%m%d').replace(tzinfo=timezone.utc)
         end_date = (start_date + timedelta(days=1)).replace(tzinfo=timezone.utc)
         return start_date,end_date
