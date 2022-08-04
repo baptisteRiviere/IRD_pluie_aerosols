@@ -1,10 +1,8 @@
 from tracemalloc import start
 import numpy as np
-from datetime import datetime,timedelta,timezone, tzinfo
-import csv
+from datetime import datetime,timedelta,timezone,tzinfo
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-import unicodedata
 import pandas as pd
 
 def extract(rain_df,start_date_utc,end_date_utc):
@@ -83,7 +81,7 @@ if __name__ == '__main__':
     fn_1m = r"../data/pluie_sol/gauges_guyane_1m_utc.csv"
     fn_mtd = r"../data/pluie_sol/gauges_guyane_metadata.csv"
 
-    
+    plot(fn_1h,fn_mtd,[6])
     """
     # ouverture du fichier source, somme horaire et enregistrement
     rain_df = pd.read_csv(fn_src)

@@ -52,15 +52,8 @@ if __name__ == "__main__":
 
     tg_date = datetime(year=2018,month=8,day=5,hour=12)
     result = download_S5AI_image(tg_date,directory_path,projection)
+    attribute = "aerosol_index_354_388"
     if result != False:
         fn,sd,ed = result
+        File(fn).getImage(1).show()
 
-    """
-    fn,sd,ed = download_S5_image(tg_date,directory_path,projection)
-    print(fn)
-
-    File(fn).getImage(1).show()
-
-    attribute = "aerosol_index_354_388"
-
-    """

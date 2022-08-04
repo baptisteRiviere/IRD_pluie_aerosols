@@ -2,12 +2,15 @@ from cv2 import Subdiv2D_PREV_AROUND_RIGHT
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import pandas as pd
 import sys
 from datetime import datetime, timedelta, date
+from scipy.stats import pearsonr
 sys.path.insert(0, r'pluie')
 import skccm as ccm
 from skccm.utilities import train_test_split
+from scipy.fft import fft, fftfreq
 
 
 
@@ -19,7 +22,7 @@ def join_rain_PM10(rain_path):
     
     result_df = pd.DataFrame()
     
-    for year in [y for y in range(2013,2021)]:
+    for year in [y for y in range(2010,2021)]:
         PM10_path = rf"../data/PM10/Donnees_PM10_{year}.xlsx"           # nom du fichier PM10
         PM10_df = pd.read_excel(PM10_path,skiprows=[1,2])               # lecture du fichier
         PM10_df['date'] = pd.to_datetime(PM10_df['Date'])               # conversion de la date
@@ -44,7 +47,7 @@ def coherence(PM10_array,rain_array):
     freq = 1
     nbelem = len(PM10_array)
 
-    f, Cxy = signal.coherence(PM10_array,rain_array,fs=freq,nperseg=100)
+    f, Cxy = signal.coherence(PM10_array,rain_array,fs=freq,nperseg=2000)
     f_ = f/(60*60*24)
     Cxy_ = np.sqrt(Cxy)
 
@@ -54,12 +57,15 @@ def coherence(PM10_array,rain_array):
     print(f"corr_max\t= {np.max(Cxy)}")
     
     #plt.semilogx(f_, Cxy_)
-    plt.plot(f_, Cxy_)
+    plt.axhline(y = 0.15, color = 'r', linestyle = '-')
+    plt.plot(f_, Cxy)
     plt.grid()
-    plt.xlabel('frequency [Hz]')
-    #plt.xlim((10**-8,10**-5))
-    plt.ylabel('Coherence')
+    plt.title("fonction de cohérence entre concentration de PM10 et pluviométrie")
+    plt.xlabel('fréquence [Hz]')
+    plt.ylabel('cohérence')
     plt.show()
+
+
 
 def ondelettes(PM10_array,rain_array):
     a = len(PM10_array)//10
@@ -69,25 +75,16 @@ def ondelettes(PM10_array,rain_array):
     #vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max()
     plt.show()
 
-if __name__ == "__main__":
-    rain_path = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"         # chemin du fichier pluie
-    #join_rain_PM10(rain_path)
-    
-    df = pd.read_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
-    PM10_array = df["PM10"].array ; rain_array = df["rain"].array
-
-    #coherence(PM10_array,rain_array)
-
-    lag = 1
+def conv_cross_map(list1,list2,list1name="list 1",list2name="list 2"):
+    lag = 5
     embed = 3
-    e1 = ccm.Embed(PM10_array)
-    e2 = ccm.Embed(rain_array)
+    
+    # intégration
+    e1 = ccm.Embed(list1)
+    e2 = ccm.Embed(list2)
     X1 = e1.embed_vectors_1d(lag,embed)
     X2 = e2.embed_vectors_1d(lag,embed)
 
-    #plt.plot(X2)
-    #plt.show()
-    
     #split the embedded time series
     x1tr, x1te, x2tr, x2te = train_test_split(X1,X2, percent=.75)
 
@@ -95,7 +92,7 @@ if __name__ == "__main__":
 
     #library lengths to test
     len_tr = len(x1tr)
-    lib_lens = np.arange(10, len_tr, len_tr/20, dtype='int')
+    lib_lens = np.arange(50, len_tr, len_tr/50, dtype='int')
 
     #test causation
     CCM.fit(x1tr,x2tr)
@@ -103,83 +100,64 @@ if __name__ == "__main__":
 
     sc1,sc2 = CCM.score()
 
-    plt.plot(sc1)
-    plt.plot(sc2)
-    plt.show()
+    fig, ax = plt.subplots(ncols=1)
+    ax.plot(lib_lens,sc1, markersize=3, linestyle='solid')
+    ax.plot(lib_lens,sc2, markersize=3, linestyle='solid')
+    ax.legend([list1name,list2name])
+
+    ax.set_ylabel('R²')
+    ax.set_xlabel('taille de la librairie')
     
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    """
-    print(len(PM10_array),len(rain_array))
-    corr = signal.correlate(PM10_array,rain_array,"same")
-    plt.plot(corr)
     plt.show()
 
-    Exy = np.fft.fft(signal.correlate(PM10_array,rain_array,"full"))
-    Exx = np.fft.fft(signal.correlate(PM10_array,PM10_array,"full"))
-    Eyy = np.fft.fft(signal.correlate(rain_array,rain_array,"full"))
+def correlation(list1,list2,list1name="list 1",list2name="list 2"):
+    
+    corr, _ = pearsonr(list1, list2)
+    #RMSE = np.sqrt(np.sum((ground_list-estim_list)**2)/len(ground_list))
+    #BIAS = np.sum(estim_list-ground_list) / np.sum(ground_list)
 
-    coh = np.sqrt(np.abs(Exy)**2/(Exx*Eyy))
-    lags = signal.correlation_lags(len(PM10_array), len(rain_array), "full")
-    F_lags = 1/lags
-    print(len(F_lags))
-    plt.plot(F_lags,np.abs(coh))
-    #plt.xlim(10**-9,10**-5)
+    print(f"CC PEARSON = {round(corr,3)}")
+
+    plt.scatter(list1,list2,s=50,alpha=0.8)
+    plt.grid()
+    plt.show()
+
+    return corr
+
+def plot(dates,list1,list2,list1name="list 1",list2name="list 2"):
+    fig, ax = plt.subplots(ncols=1)
+    ax.plot_date(dates, list1, markersize=3, linestyle='solid')
+    ax.plot_date(dates, list2, markersize=3, linestyle='solid')
+    locator = mdates.AutoDateLocator()
+    ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(mdates.AutoDateFormatter(locator))
+    ax.legend([list1name,list2name])
+    fig.autofmt_xdate()
+    ax.set_xlabel('date')
+    plt.show()
+
+if __name__ == "__main__":
+    rain_path = r"../data/pluie_sol/gauges_guyane_6min_utc.csv"         # chemin du fichier pluie
+    #join_rain_PM10(rain_path)
+    
+    
+    df = pd.read_csv(r"../data/coherence/PM10_pluie_2010-2020.csv")
+    df['date'] = pd.to_datetime(df['date'],utc=True)
+    PM10_array = np.array(df["PM10"].array) ; rain_array = df["rain"].array ; dates = df["date"]
+
+    #coherence(PM10_array,rain_array)
+
+    #correlation(PM10_array,rain_array)
+
+    conv_cross_map(PM10_array,rain_array,"PM10 -> pluie","pluie -> PM10")
+    
+    #plot(dates,PM10_array,rain_array,"PM10 (μg/m³)","pluie (mm/jour)")
+
+    """
+    N = len(PM10_array)
+    yf = fft(PM10_array)
+    xf = fftfreq(N)[:N//2]
+    plt.plot(xf, np.abs(yf[0:N//2]))
+    plt.grid()
     plt.show()
     """
-    
-
-    """
-    from scipy import signal
-    import matplotlib.pyplot as plt
-    rng = np.random.default_rng()
-
-    fs = 10e3
-    N = 1e5
-    amp = 20
-    freq = 1234.0
-    noise_power = 0.001 * fs / 2
-    time = np.arange(N) / fs
-    b, a = signal.butter(2, 0.25, 'low')
-    x = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
-    y = signal.lfilter(b, a, x)
-    x += amp*np.sin(2*np.pi*freq*time)
-    y += rng.normal(scale=0.1*np.sqrt(noise_power), size=time.shape)
-
-    print(len(x))
-
-    
-    f, Cxy = signal.coherence(x, y, fs, nperseg=1024)
-    plt.semilogy(f, Cxy)
-    plt.xlabel('frequency [Hz]')
-    plt.ylabel('Coherence')
-    plt.show()
-    """
-    
