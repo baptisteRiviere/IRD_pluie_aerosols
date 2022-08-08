@@ -21,7 +21,7 @@ class File:
         except KeyError:
             print("erreur : ce fichier n'est pas reconnu")
             
-    def project(self,projection,attribute=1,out_path=False):
+    def project(self,projection,attribute=1,out_path=None):
         """
         effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
 
@@ -93,16 +93,14 @@ class File:
         return img.array[x][y]
 
 if __name__ == "__main__":
-
-
-    in_path = r'../data/IMERG/3B-DAY.MS.MRG.3IMERG.20200503-S000000-E235959.V06.nc4.nc4'
-    attribute = "TB"
-    out_path = r'../data/test.tiff'
+    in_path = r'../data/IMERG/download/3B-DAY.MS.MRG.3IMERG.20160102-S000000-E235959.V06.nc4'
+    attribute = "HQprecipitation"
     projection = json.load(open(r"../data/param_proj/param_guy.json", "r", encoding="utf-8"))
     
     file = File(in_path)
-    img = file.project(projection,attribute)
+    img = file.project(projection,attribute,'test.tiff')
     img.show()
+    
     
    
 

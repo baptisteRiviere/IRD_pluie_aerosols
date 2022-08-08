@@ -20,7 +20,7 @@ class Nat_Format(IFormat):
     
     # TODO : moyen pour avoir reader et calibration en paramètre
 
-    def project(in_path,projection,attribute=1,out_path=False):
+    def project(in_path,projection,attribute=1,out_path=None):
         """
         effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
 

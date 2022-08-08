@@ -17,7 +17,7 @@ def get_sub_format(path):
 
 class NetCDF_Format(IFormat):
     
-    def project(in_path,projection,attribute=1,out_path=False):
+    def project(in_path,projection,attribute=1,out_path=None):
         """
         effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
 

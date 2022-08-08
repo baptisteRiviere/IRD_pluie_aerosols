@@ -17,7 +17,7 @@ class NetCDF_Format_S5(IFormat):
     L'architecture est inspirée du Strategy pattern
     """
     
-    def project(in_path,projection,attribute=1,out_path=False):
+    def project(in_path,projection,attribute=1,out_path=None):
         """
         effectue le géoréférencement et la projection du fichier à partir des paramètres de projection
 
