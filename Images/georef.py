@@ -3,7 +3,6 @@ from osgeo import gdal
 import pyresample as pr
 import os
 import warnings
-import numpy.ma as ma
 
 def define_area(projection):
     """
