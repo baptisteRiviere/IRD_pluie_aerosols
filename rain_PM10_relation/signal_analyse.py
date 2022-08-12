@@ -65,6 +65,8 @@ def path2arrays(in_path,start_date=None,end_date=None,fillna=True):
         start_date (datetime) : borne inférieure de la période d'intéret
         end_date (datetime) : borne supérieure de la période d'intéret
         fillna (Bool) : si vrai, ajoute la valeur 0 si il manque une valeur pour conserver la périodicité
+                        si faux, supprime ces lignes
+                        si None, ne fait rien
     """
     # lecture du fichier csv
     df = pd.read_csv(in_path)
@@ -78,11 +80,15 @@ def path2arrays(in_path,start_date=None,end_date=None,fillna=True):
     if end_date != None:
         df = df.loc[(df['date'] <= end_date)]
 
-    # pour conserver la périodicité : remplacement NaN par valeurs nulles
+    
     if fillna:
+        # pour conserver la périodicité : remplacement NaN par valeurs nulles
         nb_nan = df.isna().sum().sum()
         print(f"nombre de dates sans valeur : {nb_nan}")
         df = df.fillna(0)  
+    if not fillna:
+        df = df.dropna()
+
 
     # extraction des array
     PM10_array = df["PM10"].array ; rain_array = df["rain"].array ; dates = df["date"]
