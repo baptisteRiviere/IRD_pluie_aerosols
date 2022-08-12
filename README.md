@@ -12,6 +12,10 @@ Il s'agit d'une application permettant de mettre en évidence la relation pluie 
 
 Les différents dossiers sont présentés ci-dessous, les scripts sont rédgigés dans le langage de programmation python.
 
+La version mise à jour de ce code est accessible publiquement sur le lien github suivant
+https://github.com/baptisteRiviere/IRD_pluie_aerosols
+
+
 ## contenu
 
 ### downloading
